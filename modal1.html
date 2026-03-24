@@ -1,5 +1,6 @@
 <!-- =============================================
      RIVA ERP — Страница Продажи (modal1.html)
+     ИСПРАВЛЕННАЯ ВЕРСИЯ
      ============================================= -->
 
 <style>
@@ -1129,7 +1130,7 @@
                                     <th>Кол-во</th>
                                     <th>Цена</th>
                                     <th>Сумма</th>
-                                    <th>Готовность</th>
+                                    <th>Статус</th>
                                     <th>Дата</th>
                                     <th></th>
                                 </tr>
@@ -1228,7 +1229,7 @@
 
 <script>
 /* ========================================
-   ПРОДАЖИ — JAVASCRIPT
+   ПРОДАЖИ — JAVASCRIPT (ИСПРАВЛЕНО)
    ======================================== */
 
 (function() {
@@ -1300,6 +1301,10 @@
        ИНИЦИАЛИЗАЦИЯ
        ======================================== */
     async function init() {
+        if (!supabase) {
+            elements.dealsGrid.innerHTML = renderError('Ошибка подключения к базе данных');
+            return;
+        }
         await Promise.all([
             loadDeals(),
             loadProducts()
@@ -1314,44 +1319,44 @@
         try {
             elements.dealsGrid.innerHTML = '<div class="empty-state"><div class="loader"></div></div>';
 
-            const { data, error } = await supabase
+            // Загружаем сделки с клиентами и менеджерами
+            const { data: dealsData, error: dealsError } = await supabase
                 .from('riva_deals')
                 .select(`
                     *,
                     client:riva_clients(*),
-                    manager:riva_users!riva_deals_manager_id_fkey(*),
-                    items:riva_deal_items(
-                        *,
-                        product:riva_products(*),
-                        production_order:riva_production_orders(
-                            *,
-                            assigned_user:riva_users(*)
-                        )
-                    )
+                    manager:riva_users!riva_deals_manager_id_fkey(*)
                 `)
                 .order('created_at', { ascending: false });
 
-            if (error) throw error;
+            if (dealsError) throw dealsError;
 
-            deals = data || [];
+            // Загружаем позиции сделок отдельно
+            const { data: itemsData, error: itemsError } = await supabase
+                .from('riva_deal_items')
+                .select(`
+                    *,
+                    product:riva_products(*),
+                    production_order:riva_production_orders(
+                        *,
+                        assigned_user:riva_users(*)
+                    )
+                `);
+
+            if (itemsError) throw itemsError;
+
+            // Объединяем данные
+            deals = (dealsData || []).map(deal => ({
+                ...deal,
+                items: (itemsData || []).filter(item => item.deal_id === deal.id)
+            }));
+
             renderDeals();
             updateStats();
 
         } catch (error) {
             console.error('Error loading deals:', error);
-            elements.dealsGrid.innerHTML = `
-                <div class="empty-state">
-                    <div class="empty-state__icon" style="background: rgba(239, 68, 68, 0.1);">
-                        <svg viewBox="0 0 24 24" style="stroke: var(--danger);">
-                            <circle cx="12" cy="12" r="10"/>
-                            <line x1="12" y1="8" x2="12" y2="12"/>
-                            <line x1="12" y1="16" x2="12.01" y2="16"/>
-                        </svg>
-                    </div>
-                    <h3 class="empty-state__title">Ошибка загрузки</h3>
-                    <p class="empty-state__text">${error.message}</p>
-                </div>
-            `;
+            elements.dealsGrid.innerHTML = renderError(error.message);
         }
     }
 
@@ -1373,6 +1378,23 @@
         }
     }
 
+    function renderError(message) {
+        return `
+            <div class="empty-state">
+                <div class="empty-state__icon" style="background: rgba(239, 68, 68, 0.1);">
+                    <svg viewBox="0 0 24 24" style="stroke: var(--danger);">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="12" y1="8" x2="12" y2="12"/>
+                        <line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                </div>
+                <h3 class="empty-state__title">Ошибка загрузки</h3>
+                <p class="empty-state__text">${message}</p>
+                <button class="btn btn-secondary" onclick="location.reload()">Обновить страницу</button>
+            </div>
+        `;
+    }
+
     /* ========================================
        РЕНДЕРИНГ
        ======================================== */
@@ -1382,21 +1404,16 @@
         const dateFilter = elements.dateFilter.value;
 
         let filteredDeals = deals.filter(deal => {
-            // Поиск
             const matchesSearch = !searchTerm || 
                 (deal.title || '').toLowerCase().includes(searchTerm) ||
                 (deal.deal_number || '').toLowerCase().includes(searchTerm) ||
                 (deal.client?.name || '').toLowerCase().includes(searchTerm);
-
-            // Фильтр по статусу
             const matchesStatus = !statusFilter || deal.status === statusFilter;
-
-            // Фильтр по дате
+            
             let matchesDate = true;
             if (dateFilter) {
                 const dealDate = new Date(deal.created_at);
                 const now = new Date();
-                
                 if (dateFilter === 'today') {
                     matchesDate = dealDate.toDateString() === now.toDateString();
                 } else if (dateFilter === 'week') {
@@ -1407,7 +1424,6 @@
                     matchesDate = dealDate >= monthAgo;
                 }
             }
-
             return matchesSearch && matchesStatus && matchesDate;
         });
 
@@ -1495,10 +1511,8 @@
             const product = products.find(p => p.id === item.product_id) || item.product || {};
             const total = (item.quantity || 0) * (item.unit_price || 0);
             
-            // Статус производства
             let prodStatus = '';
             let prodWorker = '';
-            let prodDate = '';
             
             if (item.production_order) {
                 const po = item.production_order;
@@ -1515,11 +1529,7 @@
                 } else {
                     prodStatus = '<span class="items-table__status items-table__status--pending">Ожидает</span>';
                 }
-                
-                if (po.end_date) {
-                    prodDate = formatDate(po.end_date);
-                }
-            } else if (item.production_order_id) {
+            } else {
                 prodStatus = '<span class="items-table__status items-table__status--pending">Ожидает</span>';
             }
 
@@ -1581,58 +1591,43 @@
        ОБРАБОТЧИКИ СОБЫТИЙ
        ======================================== */
     function setupEventListeners() {
-        // Поиск и фильтры
         elements.searchInput.addEventListener('input', debounce(renderDeals, 300));
         elements.statusFilter.addEventListener('change', renderDeals);
         elements.dateFilter.addEventListener('change', renderDeals);
 
-        // Модальное окно
         elements.btnNewDeal.addEventListener('click', () => openDealModal());
         elements.modalClose.addEventListener('click', closeModal);
         elements.btnCancel.addEventListener('click', closeModal);
         elements.btnSave.addEventListener('click', saveDeal);
 
-        // Тип клиента
         elements.clientType.addEventListener('change', function() {
             const isCompany = this.value === 'company';
             elements.companyNameGroup.style.display = isCompany ? 'block' : 'none';
             elements.companyInnGroup.style.display = isCompany ? 'block' : 'none';
         });
 
-        // Оригиналы получены
         elements.originalsReceived.addEventListener('change', function() {
             elements.commissionBlock.style.display = this.checked ? 'block' : 'none';
-            if (!this.checked) {
-                elements.commissionAmount.value = '';
-            }
+            if (!this.checked) elements.commissionAmount.value = '';
         });
 
-        // Табы
         document.querySelectorAll('.tabs__btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.querySelectorAll('.tabs__btn').forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
-                
                 document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
                 document.getElementById('tab-' + this.dataset.tab).style.display = 'block';
             });
         });
 
-        // Добавление товара
         elements.btnAddProduct.addEventListener('click', addProductToDeal);
 
-        // Закрытие по клику на overlay
         elements.dealModal.addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeModal();
-            }
+            if (e.target === this) closeModal();
         });
 
-        // ESC закрытие
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && elements.dealModal.classList.contains('show')) {
-                closeModal();
-            }
+            if (e.key === 'Escape' && elements.dealModal.classList.contains('show')) closeModal();
         });
     }
 
@@ -1690,7 +1685,6 @@
         elements.saleDocsGrid.innerHTML = '';
         elements.shippingDocsGrid.innerHTML = '';
         
-        // Сброс табов
         document.querySelectorAll('.tabs__btn').forEach(b => b.classList.remove('active'));
         document.querySelector('.tabs__btn[data-tab="info"]').classList.add('active');
         document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
@@ -1703,7 +1697,6 @@
         elements.companyNameGroup.style.display = isCompany ? 'block' : 'none';
         elements.companyInnGroup.style.display = isCompany ? 'block' : 'none';
 
-        // Заполняем из клиента
         if (deal.client) {
             elements.clientName.value = deal.client.name || '';
             elements.clientPhone.value = deal.client.phone || '';
@@ -1721,7 +1714,6 @@
         elements.commissionBlock.style.display = deal.originals_received ? 'block' : 'none';
         elements.commissionAmount.value = deal.commission_amount || '';
 
-        // Загружаем позиции
         if (deal.items && deal.items.length > 0) {
             dealItems = deal.items.map(item => ({
                 id: item.id,
@@ -1738,8 +1730,6 @@
         }
         
         renderItems();
-
-        // Загружаем документы
         await loadDocuments(deal.id);
     }
 
@@ -1754,7 +1744,6 @@
 
             documents = data || [];
             renderDocuments();
-
         } catch (error) {
             console.error('Error loading documents:', error);
         }
@@ -1792,7 +1781,7 @@
     }
 
     /* ========================================
-       СОХРАНЕНИЕ СДЕЛКИ
+       СОХРАНЕНИЕ СДЕЛКИ (ИСПРАВЛЕНО)
        ======================================== */
     async function saveDeal() {
         const btn = elements.btnSave;
@@ -1800,7 +1789,6 @@
         btn.innerHTML = '<div class="btn-spinner"></div><span>Сохранение...</span>';
 
         try {
-            // Валидация
             if (!elements.clientName.value.trim()) {
                 showToast('Укажите ФИО клиента', 'error');
                 return;
@@ -1812,9 +1800,8 @@
 
             const isCompany = elements.clientType.value === 'company';
             
-            // Создаем/обновляем клиента
+            // 1. Создаем/обновляем клиента
             let clientId = null;
-            
             const clientData = {
                 name: elements.clientName.value.trim(),
                 email: elements.clientEmail.value.trim() || null,
@@ -1823,7 +1810,24 @@
                 inn: isCompany ? elements.companyInn.value.trim() : null
             };
 
-            // Сохраняем сделку
+            if (currentDealId) {
+                const existingDeal = deals.find(d => d.id === currentDealId);
+                if (existingDeal?.client_id) {
+                    await supabase.from('riva_clients').update(clientData).eq('id', existingDeal.client_id);
+                    clientId = existingDeal.client_id;
+                }
+            }
+
+            if (!clientId) {
+                const { data: clientResult } = await supabase
+                    .from('riva_clients')
+                    .insert(clientData)
+                    .select('id')
+                    .single();
+                clientId = clientResult?.id;
+            }
+
+            // 2. Сохраняем сделку
             const dealData = {
                 title: elements.dealTitle.value.trim(),
                 description: elements.dealDescription.value.trim(),
@@ -1834,60 +1838,26 @@
                 originals_received: elements.originalsReceived.checked,
                 commission_amount: elements.originalsReceived.checked ? 
                     parseFloat(elements.commissionAmount.value) || 0 : 0,
-                manager_id: currentUser?.id
+                manager_id: currentUser?.id,
+                client_id: clientId
             };
 
             if (currentDealId) {
-                // Обновляем
-                const { error: dealError } = await supabase
-                    .from('riva_deals')
-                    .update(dealData)
-                    .eq('id', currentDealId);
-
-                if (dealError) throw dealError;
-
-                // Обновляем клиента
-                if (clientId) {
-                    const existingDeal = deals.find(d => d.id === currentDealId);
-                    if (existingDeal?.client_id) {
-                        await supabase
-                            .from('riva_clients')
-                            .update(clientData)
-                            .eq('id', existingDeal.client_id);
-                    }
-                }
-
+                await supabase.from('riva_deals').update(dealData).eq('id', currentDealId);
             } else {
-                // Создаем клиента
-                const { data: clientResult, error: clientError } = await supabase
-                    .from('riva_clients')
-                    .insert(clientData)
-                    .select('id')
-                    .single();
-
-                if (clientError) throw clientError;
-                clientId = clientResult.id;
-
-                // Генерируем номер сделки
                 const dealNumber = await generateDealNumber();
-
-                // Создаем сделку
-                const { data: dealResult, error: dealError } = await supabase
+                const { data: dealResult } = await supabase
                     .from('riva_deals')
-                    .insert({
-                        ...dealData,
-                        client_id: clientId,
-                        deal_number: dealNumber
-                    })
+                    .insert({ ...dealData, deal_number: dealNumber })
                     .select('id')
                     .single();
-
-                if (dealError) throw dealError;
-                currentDealId = dealResult.id;
+                currentDealId = dealResult?.id;
             }
 
-            // Сохраняем позиции
-            await saveDealItems();
+            // 3. Сохраняем позиции (с созданием заказов на производство)
+            if (currentDealId) {
+                await saveDealItems();
+            }
 
             showToast('Сделка успешно сохранена', 'success');
             closeModal();
@@ -1910,19 +1880,12 @@
     }
 
     async function saveDealItems() {
-        if (!currentDealId) return;
-
         // Удаляем старые позиции
-        const { error: deleteError } = await supabase
-            .from('riva_deal_items')
-            .delete()
-            .eq('deal_id', currentDealId);
+        await supabase.from('riva_deal_items').delete().eq('deal_id', currentDealId);
 
-        if (deleteError) throw deleteError;
-
-        // Добавляем новые
         for (const item of dealItems) {
-            const { data: itemResult, error: itemError } = await supabase
+            // 1. Создаем позицию сделки
+            const { data: newItem } = await supabase
                 .from('riva_deal_items')
                 .insert({
                     deal_id: currentDealId,
@@ -1935,13 +1898,10 @@
                 .select('id')
                 .single();
 
-            if (itemError) throw itemError;
-
-            // Создаем задание на производство
-            if (itemResult && !item.production_order_id) {
+            if (newItem) {
+                // 2. Создаем заказ на производство
                 const orderNumber = await generateProductionOrderNumber();
-                
-                await supabase
+                const { data: newOrder } = await supabase
                     .from('riva_production_orders')
                     .insert({
                         order_number: orderNumber,
@@ -1952,7 +1912,17 @@
                         priority: parseInt(elements.dealPriority.value),
                         end_date: item.ready_date || null,
                         created_by: currentUser?.id
-                    });
+                    })
+                    .select('id')
+                    .single();
+
+                // 3. Обновляем позицию сделки, привязывая к ней заказ на производство
+                if (newOrder) {
+                    await supabase
+                        .from('riva_deal_items')
+                        .update({ production_order_id: newOrder.id })
+                        .eq('id', newItem.id);
+                }
             }
         }
     }
@@ -1961,25 +1931,15 @@
         const now = new Date();
         const year = now.getFullYear();
         const month = String(now.getMonth() + 1).padStart(2, '0');
-        
-        const { count } = await supabase
-            .from('riva_deals')
-            .select('*', { count: 'exact', head: true });
-
-        const num = String((count || 0) + 1).padStart(4, '0');
-        return `СД-${year}${month}-${num}`;
+        const { count } = await supabase.from('riva_deals').select('*', { count: 'exact', head: true });
+        return `СД-${year}${month}-${String((count || 0) + 1).padStart(4, '0')}`;
     }
 
     async function generateProductionOrderNumber() {
         const now = new Date();
         const year = now.getFullYear();
-        
-        const { count } = await supabase
-            .from('riva_production_orders')
-            .select('*', { count: 'exact', head: true });
-
-        const num = String((count || 0) + 1).padStart(4, '0');
-        return `ПР-${year}-${num}`;
+        const { count } = await supabase.from('riva_production_orders').select('*', { count: 'exact', head: true });
+        return `ПР-${year}-${String((count || 0) + 1).padStart(4, '0')}`;
     }
 
     /* ========================================
@@ -1997,7 +1957,6 @@
         const product = products.find(p => p.id === productId);
         if (!product) return;
 
-        // Проверяем, есть ли уже такой товар
         const existingIndex = dealItems.findIndex(i => i.product_id === productId);
         if (existingIndex >= 0) {
             dealItems[existingIndex].quantity += qty;
@@ -2014,31 +1973,6 @@
         renderItems();
         elements.productSelect.value = '';
         elements.productQty.value = '1';
-    }
-
-    function updateItemQty(index, value) {
-        if (dealItems[index]) {
-            dealItems[index].quantity = parseInt(value) || 1;
-            renderItems();
-        }
-    }
-
-    function updateItemPrice(index, value) {
-        if (dealItems[index]) {
-            dealItems[index].unit_price = parseFloat(value) || 0;
-            renderItems();
-        }
-    }
-
-    function updateItemDate(index, value) {
-        if (dealItems[index]) {
-            dealItems[index].ready_date = value || null;
-        }
-    }
-
-    function removeItem(index) {
-        dealItems.splice(index, 1);
-        renderItems();
     }
 
     /* ========================================
@@ -2083,14 +2017,12 @@
         };
     }
 
-    /* ========================================
-       ГЛОБАЛЬНЫЕ ФУНКЦИИ
-       ======================================== */
+    // Глобальные функции для onclick
     window.openDeal = (id) => openDealModal(id);
-    window.updateItemQty = updateItemQty;
-    window.updateItemPrice = updateItemPrice;
-    window.updateItemDate = updateItemDate;
-    window.removeItem = removeItem;
+    window.updateItemQty = (idx, val) => { dealItems[idx].quantity = parseInt(val) || 1; renderItems(); };
+    window.updateItemPrice = (idx, val) => { dealItems[idx].unit_price = parseFloat(val) || 0; renderItems(); };
+    window.updateItemDate = (idx, val) => { dealItems[idx].ready_date = val || null; };
+    window.removeItem = (idx) => { dealItems.splice(idx, 1); renderItems(); };
 
     // Запуск
     init();
