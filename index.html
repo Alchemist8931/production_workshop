@@ -1228,7 +1228,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!supabase) return;
 
             const { data, error } = await supabaseClient
-                .from('RIVA_users')
+                .from('riva_users')
                 .select('*')
                 .eq('auth_id', userId)
                 .single();
@@ -1371,9 +1371,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 if (authError) throw authError;
 
-                // Create user record in RIVA_users table
+                // Create user record in riva_users table
                 const { error: insertError } = await supabase
-                    .from('RIVA_users')
+                    .from('riva_users')
                     .insert({
                         auth_id: authData.user.id,
                         email: email,
