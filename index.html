@@ -1,0 +1,1598 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RIVA ERP — Управление бизнес-процессами</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        /* ========================================
+           CSS VARIABLES — DESIGN SYSTEM
+           ======================================== */
+        :root {
+            --bg-primary: #0a0f1a;
+            --bg-secondary: #111827;
+            --bg-card: #1a2234;
+            --bg-elevated: #232d42;
+            
+            --fg-primary: #f1f5f9;
+            --fg-secondary: #94a3b8;
+            --fg-muted: #64748b;
+            
+            --accent: #10b981;
+            --accent-hover: #059669;
+            --accent-glow: rgba(16, 185, 129, 0.3);
+            
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            
+            --border: rgba(148, 163, 184, 0.1);
+            --border-focus: rgba(16, 185, 129, 0.5);
+            
+            --radius-sm: 6px;
+            --radius-md: 12px;
+            --radius-lg: 20px;
+            --radius-xl: 28px;
+            
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 8px 32px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 16px 64px rgba(0, 0, 0, 0.5);
+            
+            --transition-fast: 150ms ease;
+            --transition-base: 250ms ease;
+            --transition-slow: 400ms cubic-bezier(0.16, 1, 0.3, 1);
+            
+            --font-display: 'Space Grotesk', sans-serif;
+            --font-ui: 'Inter', sans-serif;
+        }
+
+        /* ========================================
+           RESET & BASE STYLES
+           ======================================== */
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 16px;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-ui);
+            background: var(--bg-primary);
+            color: var(--fg-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Background Pattern */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: 
+                radial-gradient(ellipse 80% 50% at 50% -20%, rgba(16, 185, 129, 0.08), transparent),
+                radial-gradient(ellipse 60% 40% at 100% 100%, rgba(59, 130, 246, 0.05), transparent);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* Grid Pattern Overlay */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image: 
+                linear-gradient(rgba(148, 163, 184, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(148, 163, 184, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* ========================================
+           TYPOGRAPHY
+           ======================================== */
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-display);
+            font-weight: 600;
+            line-height: 1.2;
+            letter-spacing: -0.02em;
+        }
+
+        h1 { font-size: clamp(2rem, 5vw, 3.5rem); }
+        h2 { font-size: clamp(1.5rem, 3vw, 2.25rem); }
+        h3 { font-size: clamp(1.25rem, 2vw, 1.5rem); }
+
+        /* ========================================
+           LAYOUT UTILITIES
+           ======================================== */
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        .flex-center {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ========================================
+           AUTH SCREEN
+           ======================================== */
+        .auth-screen {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .auth-container {
+            width: 100%;
+            max-width: 440px;
+        }
+
+        .auth-logo {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .auth-logo__icon {
+            width: 72px;
+            height: 72px;
+            background: linear-gradient(135deg, var(--accent), #0ea5e9);
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 8px 32px var(--accent-glow);
+        }
+
+        .auth-logo__icon svg {
+            width: 40px;
+            height: 40px;
+            stroke: white;
+            stroke-width: 1.5;
+            fill: none;
+        }
+
+        .auth-logo__title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--fg-primary), var(--fg-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .auth-logo__subtitle {
+            color: var(--fg-muted);
+            font-size: 0.95rem;
+            margin-top: 8px;
+        }
+
+        .auth-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            padding: 40px;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .auth-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 32px;
+            background: var(--bg-secondary);
+            padding: 4px;
+            border-radius: var(--radius-md);
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 12px 24px;
+            border: none;
+            background: transparent;
+            color: var(--fg-secondary);
+            font-family: var(--font-ui);
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: var(--radius-sm);
+            transition: all var(--transition-base);
+        }
+
+        .auth-tab:hover {
+            color: var(--fg-primary);
+        }
+
+        .auth-tab.active {
+            background: var(--bg-elevated);
+            color: var(--accent);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .auth-form {
+            display: none;
+        }
+
+        .auth-form.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ========================================
+           FORM ELEMENTS
+           ======================================== */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--fg-secondary);
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            color: var(--fg-primary);
+            font-family: var(--font-ui);
+            font-size: 1rem;
+            transition: all var(--transition-fast);
+        }
+
+        .form-input::placeholder {
+            color: var(--fg-muted);
+        }
+
+        .form-input:hover {
+            border-color: rgba(148, 163, 184, 0.2);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .form-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 18px;
+            padding-right: 44px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px 28px;
+            border: none;
+            border-radius: var(--radius-md);
+            font-family: var(--font-ui);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition-base);
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), #0ea5e9);
+            color: white;
+            box-shadow: 0 4px 16px var(--accent-glow);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px var(--accent-glow);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: var(--bg-elevated);
+            color: var(--fg-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-card);
+            border-color: rgba(148, 163, 184, 0.2);
+        }
+
+        .btn-full {
+            width: 100%;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Form Error */
+        .form-error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            border-radius: var(--radius-md);
+            padding: 12px 16px;
+            color: var(--danger);
+            font-size: 0.875rem;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .form-error.show {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* ========================================
+           MAIN APP LAYOUT
+           ======================================== */
+        .app-screen {
+            display: none;
+            min-height: 100vh;
+        }
+
+        .app-screen.active {
+            display: block;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 280px;
+            background: var(--bg-card);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            transform: translateX(-100%);
+            transition: transform var(--transition-slow);
+        }
+
+        .sidebar.open {
+            transform: translateX(0);
+        }
+
+        .sidebar__header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .sidebar__brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sidebar__logo {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--accent), #0ea5e9);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sidebar__logo svg {
+            width: 24px;
+            height: 24px;
+            stroke: white;
+            stroke-width: 1.5;
+            fill: none;
+        }
+
+        .sidebar__title {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .sidebar__nav {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+        }
+
+        .nav-section {
+            margin-bottom: 24px;
+        }
+
+        .nav-section__title {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--fg-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            padding: 0 12px;
+            margin-bottom: 8px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: var(--radius-md);
+            color: var(--fg-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all var(--transition-fast);
+            cursor: pointer;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            font-size: 0.95rem;
+            font-family: var(--font-ui);
+        }
+
+        .nav-item:hover {
+            background: var(--bg-elevated);
+            color: var(--fg-primary);
+        }
+
+        .nav-item.active {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--accent);
+        }
+
+        .nav-item svg {
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
+            stroke-width: 1.5;
+            fill: none;
+            flex-shrink: 0;
+        }
+
+        .nav-item__badge {
+            margin-left: auto;
+            background: var(--accent);
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+
+        .sidebar__footer {
+            padding: 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        .user-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-md);
+        }
+
+        .user-card__avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-sm);
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .user-card__info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .user-card__name {
+            font-weight: 600;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .user-card__role {
+            font-size: 0.75rem;
+            color: var(--fg-muted);
+        }
+
+        .btn-logout {
+            padding: 8px;
+            background: transparent;
+            border: none;
+            color: var(--fg-muted);
+            cursor: pointer;
+            border-radius: var(--radius-sm);
+            transition: all var(--transition-fast);
+        }
+
+        .btn-logout:hover {
+            color: var(--danger);
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .btn-logout svg {
+            width: 20px;
+            height: 20px;
+            stroke: currentColor;
+            stroke-width: 1.5;
+            fill: none;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            margin-left: 0;
+            min-height: 100vh;
+            transition: margin-left var(--transition-slow);
+        }
+
+        .main-content.expanded {
+            margin-left: 280px;
+        }
+
+        /* Top Bar */
+        .topbar {
+            position: sticky;
+            top: 0;
+            background: rgba(10, 15, 26, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 50;
+        }
+
+        .topbar__left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .btn-menu {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+
+        .btn-menu:hover {
+            background: var(--bg-elevated);
+            border-color: rgba(148, 163, 184, 0.2);
+        }
+
+        .btn-menu svg {
+            width: 22px;
+            height: 22px;
+            stroke: var(--fg-primary);
+            stroke-width: 1.5;
+            fill: none;
+        }
+
+        .topbar__title {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .topbar__right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .topbar-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--bg-card);
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+        }
+
+        .topbar-info__dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* App Content */
+        .app-content {
+            padding: 24px;
+        }
+
+        #page-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            min-height: calc(100vh - 140px);
+        }
+
+        /* Welcome Screen */
+        .welcome-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: calc(100vh - 140px);
+            text-align: center;
+            padding: 48px;
+        }
+
+        .welcome-screen__icon {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(14, 165, 233, 0.1));
+            border-radius: var(--radius-xl);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 32px;
+        }
+
+        .welcome-screen__icon svg {
+            width: 60px;
+            height: 60px;
+            stroke: var(--accent);
+            stroke-width: 1;
+            fill: none;
+        }
+
+        .welcome-screen__title {
+            margin-bottom: 12px;
+        }
+
+        .welcome-screen__text {
+            color: var(--fg-secondary);
+            max-width: 400px;
+            margin-bottom: 32px;
+        }
+
+        /* Sidebar Overlay */
+        .sidebar-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            opacity: 0;
+            visibility: hidden;
+            transition: all var(--transition-base);
+            z-index: 99;
+        }
+
+        .sidebar-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* ========================================
+           TOAST NOTIFICATIONS
+           ======================================== */
+        .toast-container {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .toast {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: var(--shadow-lg);
+            min-width: 300px;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .toast.success {
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .toast.error {
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        .toast__icon {
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+
+        .toast.success .toast__icon {
+            stroke: var(--accent);
+        }
+
+        .toast.error .toast__icon {
+            stroke: var(--danger);
+        }
+
+        .toast__message {
+            flex: 1;
+            font-size: 0.95rem;
+        }
+
+        /* ========================================
+           RESPONSIVE
+           ======================================== */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                max-width: 320px;
+            }
+
+            .main-content.expanded {
+                margin-left: 0;
+            }
+
+            .topbar__title {
+                font-size: 1.25rem;
+            }
+
+            .topbar-info {
+                display: none;
+            }
+
+            .auth-card {
+                padding: 28px;
+            }
+
+            .app-content {
+                padding: 16px;
+            }
+
+            .welcome-screen {
+                padding: 24px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .auth-logo__title {
+                font-size: 2rem;
+            }
+
+            .auth-tabs {
+                flex-direction: column;
+            }
+        }
+
+        /* ========================================
+           ACCESSIBILITY
+           ======================================== */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        :focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 2px;
+        }
+
+        /* Loading Screen */
+        .loading-screen {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+
+        .loading-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loader {
+            width: 48px;
+            height: 48px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loader"></div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Auth Screen -->
+    <div class="auth-screen" id="authScreen">
+        <div class="auth-container">
+            <!-- Logo -->
+            <div class="auth-logo">
+                <div class="auth-logo__icon">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                        <path d="M2 17l10 5 10-5"/>
+                        <path d="M2 12l10 5 10-5"/>
+                    </svg>
+                </div>
+                <h1 class="auth-logo__title">RIVA ERP</h1>
+                <p class="auth-logo__subtitle">Система управления бизнес-процессами</p>
+            </div>
+
+            <!-- Auth Card -->
+            <div class="auth-card">
+                <!-- Tabs -->
+                <div class="auth-tabs">
+                    <button class="auth-tab active" data-tab="login">Вход</button>
+                    <button class="auth-tab" data-tab="register">Регистрация</button>
+                </div>
+
+                <!-- Login Form -->
+                <form class="auth-form active" id="loginForm">
+                    <div class="form-error" id="loginError">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="8" x2="12" y2="12"/>
+                            <line x1="12" y1="16" x2="12.01" y2="16"/>
+                        </svg>
+                        <span></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="loginEmail">Email</label>
+                        <input type="email" class="form-input" id="loginEmail" placeholder="user@company.ru" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="loginPassword">Пароль</label>
+                        <input type="password" class="form-input" id="loginPassword" placeholder="Введите пароль" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-full" id="loginBtn">
+                        <span>Войти в систему</span>
+                    </button>
+                </form>
+
+                <!-- Register Form -->
+                <form class="auth-form" id="registerForm">
+                    <div class="form-error" id="registerError">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="8" x2="12" y2="12"/>
+                            <line x1="12" y1="16" x2="12.01" y2="16"/>
+                        </svg>
+                        <span></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="regName">Полное имя</label>
+                        <input type="text" class="form-input" id="regName" placeholder="Иванов Иван Иванович" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="regEmail">Email</label>
+                        <input type="email" class="form-input" id="regEmail" placeholder="user@company.ru" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="regPassword">Пароль</label>
+                        <input type="password" class="form-input" id="regPassword" placeholder="Минимум 6 символов" required minlength="6">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="regRole">Роль</label>
+                        <select class="form-input form-select" id="regRole" required>
+                            <option value="">Выберите роль</option>
+                            <option value="sales_manager">Менеджер продаж</option>
+                            <option value="production_master">Мастер производства</option>
+                            <option value="supply_manager">Менеджер снабжения</option>
+                            <option value="admin">Руководство</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-full" id="registerBtn">
+                        <span>Создать аккаунт</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App Screen -->
+    <div class="app-screen" id="appScreen">
+        <!-- Sidebar Overlay -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar__header">
+                <div class="sidebar__brand">
+                    <div class="sidebar__logo">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                            <path d="M2 17l10 5 10-5"/>
+                            <path d="M2 12l10 5 10-5"/>
+                        </svg>
+                    </div>
+                    <span class="sidebar__title">RIVA ERP</span>
+                </div>
+            </div>
+
+            <nav class="sidebar__nav">
+                <div class="nav-section">
+                    <div class="nav-section__title">Основное</div>
+                    <button class="nav-item active" data-page="home">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                            <polyline points="9 22 9 12 15 12 15 22"/>
+                        </svg>
+                        <span>Главная</span>
+                    </button>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section__title">Модули</div>
+                    <button class="nav-item" data-page="modal1.html" data-role="sales_manager,admin">
+                        <svg viewBox="0 0 24 24">
+                            <line x1="12" y1="1" x2="12" y2="23"/>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                        </svg>
+                        <span>Продажи</span>
+                    </button>
+                    <button class="nav-item" data-page="modal2.html" data-role="production_master,admin">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                        </svg>
+                        <span>Производство</span>
+                    </button>
+                    <button class="nav-item" data-page="modal3.html" data-role="supply_manager,admin">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+                            <line x1="12" y1="22.08" x2="12" y2="12"/>
+                        </svg>
+                        <span>Склад и Снабжение</span>
+                    </button>
+                    <button class="nav-item" data-page="modal4.html" data-role="admin">
+                        <svg viewBox="0 0 24 24">
+                            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+                            <line x1="1" y1="10" x2="23" y2="10"/>
+                        </svg>
+                        <span>Расчет ЗП</span>
+                    </button>
+                </div>
+
+                <div class="nav-section">
+                    <div class="nav-section__title">Администрирование</div>
+                    <button class="nav-item" data-page="modal5.html" data-role="admin">
+                        <svg viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="3"/>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                        </svg>
+                        <span>Панель управления</span>
+                    </button>
+                </div>
+            </nav>
+
+            <div class="sidebar__footer">
+                <div class="user-card">
+                    <div class="user-card__avatar" id="userAvatar">?</div>
+                    <div class="user-card__info">
+                        <div class="user-card__name" id="userName">Загрузка...</div>
+                        <div class="user-card__role" id="userRoleDisplay">-</div>
+                    </div>
+                    <button class="btn-logout" id="logoutBtn" title="Выйти">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                            <polyline points="16 17 21 12 16 7"/>
+                            <line x1="21" y1="12" x2="9" y2="12"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content" id="mainContent">
+            <!-- Top Bar -->
+            <header class="topbar">
+                <div class="topbar__left">
+                    <button class="btn-menu" id="menuBtn" aria-label="Открыть меню">
+                        <svg viewBox="0 0 24 24">
+                            <line x1="3" y1="12" x2="21" y2="12"/>
+                            <line x1="3" y1="6" x2="21" y2="6"/>
+                            <line x1="3" y1="18" x2="21" y2="18"/>
+                        </svg>
+                    </button>
+                    <h2 class="topbar__title" id="pageTitle">Главная</h2>
+                </div>
+                <div class="topbar__right">
+                    <div class="topbar-info">
+                        <span class="topbar-info__dot"></span>
+                        <span>Система активна</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- App Content -->
+            <div class="app-content">
+                <div id="page-container">
+                    <!-- Welcome Screen (Default) -->
+                    <div class="welcome-screen" id="welcomeScreen">
+                        <div class="welcome-screen__icon">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                                <path d="M2 17l10 5 10-5"/>
+                                <path d="M2 12l10 5 10-5"/>
+                            </svg>
+                        </div>
+                        <h2 class="welcome-screen__title">Добро пожаловать в RIVA ERP</h2>
+                        <p class="welcome-screen__text">Выберите раздел в боковом меню для начала работы с системой управления бизнес-процессами</p>
+                        <button class="btn btn-secondary" onclick="document.getElementById('menuBtn').click()">
+                            Открыть меню
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        /* ========================================
+           SUPABASE CONFIGURATION
+           Вставьте свои ключи от Supabase проекта
+           ======================================== */
+        const SUPABASE_URL = "https://ncdwlmgwljjwpuawlssr.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5jZHdsbWd3bGpqd3B1YXdsc3NyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc0NTQxNDksImV4cCI6MjA4MzAzMDE0OX0.rrIznUflWydylTnUZvOxOkeF9eMp91qNN4Bjq2gXRL8";
+
+        // Initialize Supabase Client
+        let supabase = null;
+        let currentUser = null;
+
+        // Role display names mapping
+        const ROLE_NAMES = {
+            'sales_manager': 'Менеджер продаж',
+            'production_master': 'Мастер производства',
+            'supply_manager': 'Менеджер снабжения',
+            'admin': 'Руководство'
+        };
+
+        /* ========================================
+           DOM ELEMENTS
+           ======================================== */
+        const loadingScreen = document.getElementById('loadingScreen');
+        const authScreen = document.getElementById('authScreen');
+        const appScreen = document.getElementById('appScreen');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+        const mainContent = document.getElementById('mainContent');
+        const menuBtn = document.getElementById('menuBtn');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const pageContainer = document.getElementById('page-container');
+        const welcomeScreen = document.getElementById('welcomeScreen');
+        const pageTitle = document.getElementById('pageTitle');
+        const toastContainer = document.getElementById('toastContainer');
+
+        // Auth elements
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const loginError = document.getElementById('loginError');
+        const registerError = document.getElementById('registerError');
+        const authTabs = document.querySelectorAll('.auth-tab');
+
+        // User display elements
+        const userAvatar = document.getElementById('userAvatar');
+        const userName = document.getElementById('userName');
+        const userRoleDisplay = document.getElementById('userRoleDisplay');
+
+        /* ========================================
+           INITIALIZATION
+           ======================================== */
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                // Initialize Supabase
+                if (typeof window.supabase !== 'undefined' && SUPABASE_URL !== 'YOUR_SUPABASE_URL') {
+                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                }
+
+                // Check for existing session
+                await checkSession();
+            } catch (error) {
+                console.error('Initialization error:', error);
+            } finally {
+                // Hide loading screen
+                setTimeout(() => {
+                    loadingScreen.classList.add('hidden');
+                }, 500);
+            }
+        });
+
+        /* ========================================
+           AUTH FUNCTIONS
+           ======================================== */
+        async function checkSession() {
+            if (!supabase) {
+                showAuthScreen();
+                return;
+            }
+
+            const { data: { session } } = await supabase.auth.getSession();
+            
+            if (session) {
+                await loadUserData(session.user.id);
+                showAppScreen();
+            } else {
+                showAuthScreen();
+            }
+        }
+
+        async function loadUserData(userId) {
+            if (!supabase) return;
+
+            const { data, error } = await supabase
+                .from('RIVA_users')
+                .select('*')
+                .eq('auth_id', userId)
+                .single();
+
+            if (data) {
+                currentUser = data;
+                updateUserDisplay();
+                updateNavByRole();
+            }
+        }
+
+        function updateUserDisplay() {
+            if (currentUser) {
+                const initials = currentUser.full_name
+                    .split(' ')
+                    .map(n => n[0])
+                    .join('')
+                    .substring(0, 2)
+                    .toUpperCase();
+                
+                userAvatar.textContent = initials;
+                userName.textContent = currentUser.full_name;
+                userRoleDisplay.textContent = ROLE_NAMES[currentUser.role] || currentUser.role;
+            }
+        }
+
+        function updateNavByRole() {
+            if (!currentUser) return;
+
+            const navItems = document.querySelectorAll('.nav-item[data-role]');
+            
+            navItems.forEach(item => {
+                const allowedRoles = item.dataset.role.split(',');
+                if (allowedRoles.includes(currentUser.role)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+
+        function showAuthScreen() {
+            authScreen.style.display = 'flex';
+            appScreen.classList.remove('active');
+        }
+
+        function showAppScreen() {
+            authScreen.style.display = 'none';
+            appScreen.classList.add('active');
+        }
+
+        /* ========================================
+           AUTH EVENT HANDLERS
+           ======================================== */
+        // Tab switching
+        authTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                authTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
+                const tabName = tab.dataset.tab;
+                document.querySelectorAll('.auth-form').forEach(form => {
+                    form.classList.remove('active');
+                });
+                document.getElementById(tabName + 'Form').classList.add('active');
+
+                // Clear errors
+                loginError.classList.remove('show');
+                registerError.classList.remove('show');
+            });
+        });
+
+        // Login form submit
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const loginBtn = document.getElementById('loginBtn');
+
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = '<div class="btn-spinner"></div><span>Вход...</span>';
+            loginError.classList.remove('show');
+
+            try {
+                if (!supabase) {
+                    throw new Error('Supabase не инициализирован. Проверьте конфигурацию.');
+                }
+
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email,
+                    password
+                });
+
+                if (error) throw error;
+
+                await loadUserData(data.user.id);
+                showAppScreen();
+                showToast('Добро пожаловать в RIVA ERP!', 'success');
+
+            } catch (error) {
+                loginError.querySelector('span').textContent = error.message || 'Ошибка авторизации';
+                loginError.classList.add('show');
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = '<span>Войти в систему</span>';
+            }
+        });
+
+        // Register form submit
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const fullName = document.getElementById('regName').value;
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+            const role = document.getElementById('regRole').value;
+            const registerBtn = document.getElementById('registerBtn');
+
+            registerBtn.disabled = true;
+            registerBtn.innerHTML = '<div class="btn-spinner"></div><span>Регистрация...</span>';
+            registerError.classList.remove('show');
+
+            try {
+                if (!supabase) {
+                    throw new Error('Supabase не инициализирован. Проверьте конфигурацию.');
+                }
+
+                // Create auth user
+                const { data: authData, error: authError } = await supabase.auth.signUp({
+                    email,
+                    password,
+                    options: {
+                        data: {
+                            full_name: fullName,
+                            role: role
+                        }
+                    }
+                });
+
+                if (authError) throw authError;
+
+                // Create user record in RIVA_users table
+                const { error: insertError } = await supabase
+                    .from('RIVA_users')
+                    .insert({
+                        auth_id: authData.user.id,
+                        email: email,
+                        full_name: fullName,
+                        role: role,
+                        created_at: new Date().toISOString()
+                    });
+
+                if (insertError) throw insertError;
+
+                await loadUserData(authData.user.id);
+                showAppScreen();
+                showToast('Аккаунт успешно создан!', 'success');
+
+            } catch (error) {
+                registerError.querySelector('span').textContent = error.message || 'Ошибка регистрации';
+                registerError.classList.add('show');
+            } finally {
+                registerBtn.disabled = false;
+                registerBtn.innerHTML = '<span>Создать аккаунт</span>';
+            }
+        });
+
+        // Logout
+        logoutBtn.addEventListener('click', async () => {
+            if (supabase) {
+                await supabase.auth.signOut();
+            }
+            currentUser = null;
+            showAuthScreen();
+            showToast('Вы вышли из системы', 'success');
+        });
+
+        /* ========================================
+           SIDEBAR & NAVIGATION
+           ======================================== */
+        menuBtn.addEventListener('click', toggleSidebar);
+        sidebarOverlay.addEventListener('click', closeSidebar);
+
+        function toggleSidebar() {
+            sidebar.classList.toggle('open');
+            sidebarOverlay.classList.toggle('show');
+        }
+
+        function closeSidebar() {
+            sidebar.classList.remove('open');
+            sidebarOverlay.classList.remove('show');
+        }
+
+        // Navigation items click
+        document.querySelectorAll('.nav-item[data-page]').forEach(item => {
+            item.addEventListener('click', async () => {
+                const page = item.dataset.page;
+                
+                // Update active state
+                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+
+                if (page === 'home') {
+                    showWelcomeScreen();
+                    pageTitle.textContent = 'Главная';
+                } else {
+                    await loadPage(page);
+                    // Update page title based on item text
+                    const pageText = item.querySelector('span').textContent;
+                    pageTitle.textContent = pageText;
+                }
+
+                // Close sidebar on mobile
+                if (window.innerWidth <= 768) {
+                    closeSidebar();
+                }
+            });
+        });
+
+        /* ========================================
+           PAGE LOADER
+           ======================================== */
+        async function loadPage(url) {
+            try {
+                // Show loading state
+                pageContainer.innerHTML = `
+                    <div class="welcome-screen" style="min-height: 300px;">
+                        <div class="loader"></div>
+                    </div>
+                `;
+
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`Ошибка загрузки: ${response.status}`);
+                }
+
+                const html = await response.text();
+                
+                // Insert HTML
+                pageContainer.innerHTML = html;
+
+                // Execute scripts
+                const scripts = pageContainer.querySelectorAll('script');
+                for (const script of scripts) {
+                    const newScript = document.createElement('script');
+                    
+                    if (script.src) {
+                        newScript.src = script.src;
+                    } else {
+                        newScript.textContent = script.textContent;
+                    }
+                    
+                    // Copy attributes
+                    Array.from(script.attributes).forEach(attr => {
+                        if (attr.name !== 'src') {
+                            newScript.setAttribute(attr.name, attr.value);
+                        }
+                    });
+                    
+                    script.parentNode.replaceChild(newScript, script);
+                }
+
+            } catch (error) {
+                console.error('Error loading page:', error);
+                pageContainer.innerHTML = `
+                    <div class="welcome-screen">
+                        <div class="welcome-screen__icon" style="background: rgba(239, 68, 68, 0.1);">
+                            <svg viewBox="0 0 24 24" style="stroke: var(--danger);">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="12" y1="8" x2="12" y2="12"/>
+                                <line x1="12" y1="16" x2="12.01" y2="16"/>
+                            </svg>
+                        </div>
+                        <h2 class="welcome-screen__title">Ошибка загрузки</h2>
+                        <p class="welcome-screen__text">Не удалось загрузить страницу. Проверьте подключение и попробуйте снова.</p>
+                        <button class="btn btn-secondary" onclick="showWelcomeScreen()">Вернуться на главную</button>
+                    </div>
+                `;
+            }
+        }
+
+        function showWelcomeScreen() {
+            pageContainer.innerHTML = `
+                <div class="welcome-screen">
+                    <div class="welcome-screen__icon">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                            <path d="M2 17l10 5 10-5"/>
+                            <path d="M2 12l10 5 10-5"/>
+                        </svg>
+                    </div>
+                    <h2 class="welcome-screen__title">Добро пожаловать в RIVA ERP</h2>
+                    <p class="welcome-screen__text">Выберите раздел в боковом меню для начала работы с системой управления бизнес-процессами</p>
+                    <button class="btn btn-secondary" onclick="document.getElementById('menuBtn').click()">
+                        Открыть меню
+                    </button>
+                </div>
+            `;
+        }
+
+        /* ========================================
+           TOAST NOTIFICATIONS
+           ======================================== */
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            const iconPath = type === 'success' 
+                ? '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>'
+                : '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>';
+            
+            toast.innerHTML = `
+                <svg class="toast__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    ${iconPath}
+                </svg>
+                <span class="toast__message">${message}</span>
+            `;
+            
+            toastContainer.appendChild(toast);
+            
+            // Auto remove after 4 seconds
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        /* ========================================
+           UTILITY FUNCTIONS (GLOBAL)
+           ======================================== */
+        window.loadPage = loadPage;
+        window.showWelcomeScreen = showWelcomeScreen;
+        window.showToast = showToast;
+
+        // Get current user data for pages
+        window.getCurrentUser = () => currentUser;
+        window.getSupabase = () => supabase;
+
+        /* ========================================
+           KEYBOARD SHORTCUTS
+           ======================================== */
+        document.addEventListener('keydown', (e) => {
+            // ESC to close sidebar
+            if (e.key === 'Escape' && sidebar.classList.contains('open')) {
+                closeSidebar();
+            }
+        });
+
+        /* ========================================
+           RESPONSIVE HANDLING
+           ======================================== */
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                if (window.innerWidth > 768) {
+                    sidebarOverlay.classList.remove('show');
+                }
+            }, 100);
+        });
+    </script>
+</body>
+</html>
