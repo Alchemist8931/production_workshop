@@ -1145,7 +1145,7 @@
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5jZHdsbWd3bGpqd3B1YXdsc3NyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc0NTQxNDksImV4cCI6MjA4MzAzMDE0OX0.rrIznUflWydylTnUZvOxOkeF9eMp91qNN4Bjq2gXRL8";
 
         // Initialize Supabase Client
-        let supabase = null;
+        let supabaseClient = null;
         let currentUser = null;
 
         // Role display names mapping
@@ -1187,24 +1187,23 @@
         /* ========================================
            INITIALIZATION
            ======================================== */
-        document.addEventListener('DOMContentLoaded', async () => {
-            try {
-                // Initialize Supabase
-                if (typeof window.supabase !== 'undefined' && SUPABASE_URL !== 'YOUR_SUPABASE_URL') {
-                    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-                }
+        // В DOMContentLoaded:
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        // Инициализируем Supabase через глобальный объект, созданный CDN
+        if (typeof window.supabase !== 'undefined' && SUPABASE_URL !== 'YOUR_SUPABASE_URL') {
+            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        }
 
-                // Check for existing session
-                await checkSession();
-            } catch (error) {
-                console.error('Initialization error:', error);
-            } finally {
-                // Hide loading screen
-                setTimeout(() => {
-                    loadingScreen.classList.add('hidden');
-                }, 500);
-            }
-        });
+        await checkSession();
+    } catch (error) {
+        console.error('Initialization error:', error);
+    } finally {
+        setTimeout(() => {
+            loadingScreen.classList.add('hidden');
+        }, 500);
+    }
+});
 
         /* ========================================
            AUTH FUNCTIONS
@@ -1215,7 +1214,7 @@
                 return;
             }
 
-            const { data: { session } } = await supabase.auth.getSession();
+            const { data: { session } } = await supabaseClient.auth.getSession();
             
             if (session) {
                 await loadUserData(session.user.id);
@@ -1228,7 +1227,7 @@
         async function loadUserData(userId) {
             if (!supabase) return;
 
-            const { data, error } = await supabase
+            const { data, error } = await supabaseClient
                 .from('RIVA_users')
                 .select('*')
                 .eq('auth_id', userId)
@@ -1401,7 +1400,7 @@
         // Logout
         logoutBtn.addEventListener('click', async () => {
             if (supabase) {
-                await supabase.auth.signOut();
+                await supabaseClient.auth.signOut();;
             }
             currentUser = null;
             showAuthScreen();
