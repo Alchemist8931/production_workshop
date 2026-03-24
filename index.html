@@ -1137,461 +1137,468 @@
     </div>
 
     <script>
-        /* ========================================
-           SUPABASE CONFIGURATION
-           Вставьте свои ключи от Supabase проекта
-           ======================================== */
-        const SUPABASE_URL = "https://ncdwlmgwljjwpuawlssr.supabase.co";
-        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5jZHdsbWd3bGpqd3B1YXdsc3NyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc0NTQxNDksImV4cCI6MjA4MzAzMDE0OX0.rrIznUflWydylTnUZvOxOkeF9eMp91qNN4Bjq2gXRL8";
+    /* ========================================
+       SUPABASE CONFIGURATION
+       ======================================== */
+    const SUPABASE_URL = "https://ncdwlmgwljjwpuawlssr.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5jZHdsbWd3bGpqd3B1YXdsc3NyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njc0NTQxNDksImV4cCI6MjA4MzAzMDE0OX0.rrIznUflWydylTnUZvOxOkeF9eMp91qNN4Bjq2gXRL8";
 
-        // Initialize Supabase Client
-        let supabaseClient = null;
-        let currentUser = null;
+    // Initialize Supabase Client
+    let supabaseClient = null;
+    let currentUser = null;
 
-        // Role display names mapping
-        const ROLE_NAMES = {
-            'sales_manager': 'Менеджер продаж',
-            'production_master': 'Мастер производства',
-            'supply_manager': 'Менеджер снабжения',
-            'admin': 'Руководство'
-        };
+    // Role display names mapping
+    const ROLE_NAMES = {
+        'sales_manager': 'Менеджер продаж',
+        'production_master': 'Мастер производства',
+        'supply_manager': 'Менеджер снабжения',
+        'admin': 'Руководство'
+    };
 
-        /* ========================================
-           DOM ELEMENTS
-           ======================================== */
-        const loadingScreen = document.getElementById('loadingScreen');
-        const authScreen = document.getElementById('authScreen');
-        const appScreen = document.getElementById('appScreen');
-        const sidebar = document.getElementById('sidebar');
-        const sidebarOverlay = document.getElementById('sidebarOverlay');
-        const mainContent = document.getElementById('mainContent');
-        const menuBtn = document.getElementById('menuBtn');
-        const logoutBtn = document.getElementById('logoutBtn');
-        const pageContainer = document.getElementById('page-container');
-        const welcomeScreen = document.getElementById('welcomeScreen');
-        const pageTitle = document.getElementById('pageTitle');
-        const toastContainer = document.getElementById('toastContainer');
+    /* ========================================
+       DOM ELEMENTS
+       ======================================== */
+    const loadingScreen = document.getElementById('loadingScreen');
+    const authScreen = document.getElementById('authScreen');
+    const appScreen = document.getElementById('appScreen');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+    const mainContent = document.getElementById('mainContent');
+    const menuBtn = document.getElementById('menuBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const pageContainer = document.getElementById('page-container');
+    const welcomeScreen = document.getElementById('welcomeScreen');
+    const pageTitle = document.getElementById('pageTitle');
+    const toastContainer = document.getElementById('toastContainer');
 
-        // Auth elements
-        const loginForm = document.getElementById('loginForm');
-        const registerForm = document.getElementById('registerForm');
-        const loginError = document.getElementById('loginError');
-        const registerError = document.getElementById('registerError');
-        const authTabs = document.querySelectorAll('.auth-tab');
+    // Auth elements
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    const loginError = document.getElementById('loginError');
+    const registerError = document.getElementById('registerError');
+    const authTabs = document.querySelectorAll('.auth-tab');
 
-        // User display elements
-        const userAvatar = document.getElementById('userAvatar');
-        const userName = document.getElementById('userName');
-        const userRoleDisplay = document.getElementById('userRoleDisplay');
+    // User display elements
+    const userAvatar = document.getElementById('userAvatar');
+    const userName = document.getElementById('userName');
+    const userRoleDisplay = document.getElementById('userRoleDisplay');
 
-        /* ========================================
-           INITIALIZATION
-           ======================================== */
-        // В DOMContentLoaded:
-document.addEventListener('DOMContentLoaded', async () => {
-    try {
-        // Инициализируем Supabase через глобальный объект, созданный CDN
-        if (typeof window.supabase !== 'undefined' && SUPABASE_URL !== 'YOUR_SUPABASE_URL') {
-            supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        }
-
-        await checkSession();
-    } catch (error) {
-        console.error('Initialization error:', error);
-    } finally {
-        setTimeout(() => {
-            loadingScreen.classList.add('hidden');
-        }, 500);
-    }
-});
-
-        /* ========================================
-           AUTH FUNCTIONS
-           ======================================== */
-        async function checkSession() {
-            if (!supabase) {
-                showAuthScreen();
-                return;
-            }
-
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            
-            if (session) {
-                await loadUserData(session.user.id);
-                showAppScreen();
+    /* ========================================
+       INITIALIZATION
+       ======================================== */
+    document.addEventListener('DOMContentLoaded', async () => {
+        try {
+            // Инициализируем Supabase
+            if (typeof window.supabase !== 'undefined') {
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             } else {
-                showAuthScreen();
+                console.error('Supabase library not loaded');
             }
-        }
 
-        async function loadUserData(userId) {
-            if (!supabase) return;
-
-            const { data, error } = await supabaseClient
-                .from('riva_users')
-                .select('*')
-                .eq('auth_id', userId)
-                .single();
-
-            if (data) {
-                currentUser = data;
-                updateUserDisplay();
-                updateNavByRole();
-            }
-        }
-
-        function updateUserDisplay() {
-            if (currentUser) {
-                const initials = currentUser.full_name
-                    .split(' ')
-                    .map(n => n[0])
-                    .join('')
-                    .substring(0, 2)
-                    .toUpperCase();
-                
-                userAvatar.textContent = initials;
-                userName.textContent = currentUser.full_name;
-                userRoleDisplay.textContent = ROLE_NAMES[currentUser.role] || currentUser.role;
-            }
-        }
-
-        function updateNavByRole() {
-            if (!currentUser) return;
-
-            const navItems = document.querySelectorAll('.nav-item[data-role]');
-            
-            navItems.forEach(item => {
-                const allowedRoles = item.dataset.role.split(',');
-                if (allowedRoles.includes(currentUser.role)) {
-                    item.style.display = 'flex';
-                } else {
-                    item.style.display = 'none';
-                }
-            });
-        }
-
-        function showAuthScreen() {
-            authScreen.style.display = 'flex';
-            appScreen.classList.remove('active');
-        }
-
-        function showAppScreen() {
-            authScreen.style.display = 'none';
-            appScreen.classList.add('active');
-        }
-
-        /* ========================================
-           AUTH EVENT HANDLERS
-           ======================================== */
-        // Tab switching
-        authTabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                authTabs.forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-
-                const tabName = tab.dataset.tab;
-                document.querySelectorAll('.auth-form').forEach(form => {
-                    form.classList.remove('active');
-                });
-                document.getElementById(tabName + 'Form').classList.add('active');
-
-                // Clear errors
-                loginError.classList.remove('show');
-                registerError.classList.remove('show');
-            });
-        });
-
-        // Login form submit
-        loginForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-            const loginBtn = document.getElementById('loginBtn');
-
-            loginBtn.disabled = true;
-            loginBtn.innerHTML = '<div class="btn-spinner"></div><span>Вход...</span>';
-            loginError.classList.remove('show');
-
-            try {
-                if (!supabase) {
-                    throw new Error('Supabase не инициализирован. Проверьте конфигурацию.');
-                }
-
-                const { data, error } = await supabase.auth.signInWithPassword({
-                    email,
-                    password
-                });
-
-                if (error) throw error;
-
-                await loadUserData(data.user.id);
-                showAppScreen();
-                showToast('Добро пожаловать в RIVA ERP!', 'success');
-
-            } catch (error) {
-                loginError.querySelector('span').textContent = error.message || 'Ошибка авторизации';
-                loginError.classList.add('show');
-            } finally {
-                loginBtn.disabled = false;
-                loginBtn.innerHTML = '<span>Войти в систему</span>';
-            }
-        });
-
-        // Register form submit
-        registerForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const fullName = document.getElementById('regName').value;
-            const email = document.getElementById('regEmail').value;
-            const password = document.getElementById('regPassword').value;
-            const role = document.getElementById('regRole').value;
-            const registerBtn = document.getElementById('registerBtn');
-
-            registerBtn.disabled = true;
-            registerBtn.innerHTML = '<div class="btn-spinner"></div><span>Регистрация...</span>';
-            registerError.classList.remove('show');
-
-            try {
-                if (!supabase) {
-                    throw new Error('Supabase не инициализирован. Проверьте конфигурацию.');
-                }
-
-                // Create auth user
-                const { data: authData, error: authError } = await supabase.auth.signUp({
-                    email,
-                    password,
-                    options: {
-                        data: {
-                            full_name: fullName,
-                            role: role
-                        }
-                    }
-                });
-
-                if (authError) throw authError;
-
-                // Create user record in riva_users table
-                const { error: insertError } = await supabase
-                    .from('riva_users')
-                    .insert({
-                        auth_id: authData.user.id,
-                        email: email,
-                        full_name: fullName,
-                        role: role,
-                        created_at: new Date().toISOString()
-                    });
-
-                if (insertError) throw insertError;
-
-                await loadUserData(authData.user.id);
-                showAppScreen();
-                showToast('Аккаунт успешно создан!', 'success');
-
-            } catch (error) {
-                registerError.querySelector('span').textContent = error.message || 'Ошибка регистрации';
-                registerError.classList.add('show');
-            } finally {
-                registerBtn.disabled = false;
-                registerBtn.innerHTML = '<span>Создать аккаунт</span>';
-            }
-        });
-
-        // Logout
-        logoutBtn.addEventListener('click', async () => {
-            if (supabase) {
-                await supabaseClient.auth.signOut();;
-            }
-            currentUser = null;
-            showAuthScreen();
-            showToast('Вы вышли из системы', 'success');
-        });
-
-        /* ========================================
-           SIDEBAR & NAVIGATION
-           ======================================== */
-        menuBtn.addEventListener('click', toggleSidebar);
-        sidebarOverlay.addEventListener('click', closeSidebar);
-
-        function toggleSidebar() {
-            sidebar.classList.toggle('open');
-            sidebarOverlay.classList.toggle('show');
-        }
-
-        function closeSidebar() {
-            sidebar.classList.remove('open');
-            sidebarOverlay.classList.remove('show');
-        }
-
-        // Navigation items click
-        document.querySelectorAll('.nav-item[data-page]').forEach(item => {
-            item.addEventListener('click', async () => {
-                const page = item.dataset.page;
-                
-                // Update active state
-                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-                item.classList.add('active');
-
-                if (page === 'home') {
-                    showWelcomeScreen();
-                    pageTitle.textContent = 'Главная';
-                } else {
-                    await loadPage(page);
-                    // Update page title based on item text
-                    const pageText = item.querySelector('span').textContent;
-                    pageTitle.textContent = pageText;
-                }
-
-                // Close sidebar on mobile
-                if (window.innerWidth <= 768) {
-                    closeSidebar();
-                }
-            });
-        });
-
-        /* ========================================
-           PAGE LOADER
-           ======================================== */
-        async function loadPage(url) {
-            try {
-                // Show loading state
-                pageContainer.innerHTML = `
-                    <div class="welcome-screen" style="min-height: 300px;">
-                        <div class="loader"></div>
-                    </div>
-                `;
-
-                const response = await fetch(url);
-                
-                if (!response.ok) {
-                    throw new Error(`Ошибка загрузки: ${response.status}`);
-                }
-
-                const html = await response.text();
-                
-                // Insert HTML
-                pageContainer.innerHTML = html;
-
-                // Execute scripts
-                const scripts = pageContainer.querySelectorAll('script');
-                for (const script of scripts) {
-                    const newScript = document.createElement('script');
-                    
-                    if (script.src) {
-                        newScript.src = script.src;
-                    } else {
-                        newScript.textContent = script.textContent;
-                    }
-                    
-                    // Copy attributes
-                    Array.from(script.attributes).forEach(attr => {
-                        if (attr.name !== 'src') {
-                            newScript.setAttribute(attr.name, attr.value);
-                        }
-                    });
-                    
-                    script.parentNode.replaceChild(newScript, script);
-                }
-
-            } catch (error) {
-                console.error('Error loading page:', error);
-                pageContainer.innerHTML = `
-                    <div class="welcome-screen">
-                        <div class="welcome-screen__icon" style="background: rgba(239, 68, 68, 0.1);">
-                            <svg viewBox="0 0 24 24" style="stroke: var(--danger);">
-                                <circle cx="12" cy="12" r="10"/>
-                                <line x1="12" y1="8" x2="12" y2="12"/>
-                                <line x1="12" y1="16" x2="12.01" y2="16"/>
-                            </svg>
-                        </div>
-                        <h2 class="welcome-screen__title">Ошибка загрузки</h2>
-                        <p class="welcome-screen__text">Не удалось загрузить страницу. Проверьте подключение и попробуйте снова.</p>
-                        <button class="btn btn-secondary" onclick="showWelcomeScreen()">Вернуться на главную</button>
-                    </div>
-                `;
-            }
-        }
-
-        function showWelcomeScreen() {
-            pageContainer.innerHTML = `
-                <div class="welcome-screen">
-                    <div class="welcome-screen__icon">
-                        <svg viewBox="0 0 24 24">
-                            <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-                            <path d="M2 17l10 5 10-5"/>
-                            <path d="M2 12l10 5 10-5"/>
-                        </svg>
-                    </div>
-                    <h2 class="welcome-screen__title">Добро пожаловать в RIVA ERP</h2>
-                    <p class="welcome-screen__text">Выберите раздел в боковом меню для начала работы с системой управления бизнес-процессами</p>
-                    <button class="btn btn-secondary" onclick="document.getElementById('menuBtn').click()">
-                        Открыть меню
-                    </button>
-                </div>
-            `;
-        }
-
-        /* ========================================
-           TOAST NOTIFICATIONS
-           ======================================== */
-        function showToast(message, type = 'success') {
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            
-            const iconPath = type === 'success' 
-                ? '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>'
-                : '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>';
-            
-            toast.innerHTML = `
-                <svg class="toast__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    ${iconPath}
-                </svg>
-                <span class="toast__message">${message}</span>
-            `;
-            
-            toastContainer.appendChild(toast);
-            
-            // Auto remove after 4 seconds
+            await checkSession();
+        } catch (error) {
+            console.error('Initialization error:', error);
+        } finally {
             setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateX(100%)';
-                setTimeout(() => toast.remove(), 300);
-            }, 4000);
+                loadingScreen.classList.add('hidden');
+            }, 500);
+        }
+    });
+
+    /* ========================================
+       AUTH FUNCTIONS
+       ======================================== */
+    async function checkSession() {
+        if (!supabaseClient) {
+            showAuthScreen();
+            return;
         }
 
-        /* ========================================
-           UTILITY FUNCTIONS (GLOBAL)
-           ======================================== */
-        window.loadPage = loadPage;
-        window.showWelcomeScreen = showWelcomeScreen;
-        window.showToast = showToast;
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        
+        if (session) {
+            await loadUserData(session.user.id);
+            showAppScreen();
+        } else {
+            showAuthScreen();
+        }
+    }
 
-        // Get current user data for pages
-        window.getCurrentUser = () => currentUser;
-        window.getSupabase = () => supabase;
+    async function loadUserData(userId) {
+        if (!supabaseClient) return;
 
-        /* ========================================
-           KEYBOARD SHORTCUTS
-           ======================================== */
-        document.addEventListener('keydown', (e) => {
-            // ESC to close sidebar
-            if (e.key === 'Escape' && sidebar.classList.contains('open')) {
+        const { data, error } = await supabaseClient
+            .from('riva_users')
+            .select('*')
+            .eq('id', userId)  // ИСПРАВЛЕНО: используем id, а не auth_id
+            .single();
+
+        if (error) {
+            console.error('Error loading user data:', error);
+            // Если профиля нет, пробуем создать
+            if (error.code === 'PGRST116') {
+                await createUserProfile(userId);
+            }
+            return;
+        }
+
+        if (data) {
+            currentUser = data;
+            updateUserDisplay();
+            updateNavByRole();
+        }
+    }
+
+    async function createUserProfile(userId) {
+        const { data: { user } } = await supabaseClient.auth.getUser();
+        if (!user) return;
+
+        const { data, error } = await supabaseClient
+            .from('riva_users')
+            .insert({
+                id: userId,
+                email: user.email,
+                full_name: user.user_metadata?.full_name || user.email,
+                role: user.user_metadata?.role || 'sales_manager'
+            })
+            .select()
+            .single();
+
+        if (data) {
+            currentUser = data;
+            updateUserDisplay();
+            updateNavByRole();
+        }
+    }
+
+    function updateUserDisplay() {
+        if (currentUser) {
+            const nameParts = (currentUser.full_name || '').split(' ').filter(Boolean);
+            const initials = nameParts.length > 0 
+                ? nameParts.map(n => n[0]).join('').substring(0, 2).toUpperCase()
+                : '??';
+            
+            userAvatar.textContent = initials;
+            userName.textContent = currentUser.full_name || 'Пользователь';
+            userRoleDisplay.textContent = ROLE_NAMES[currentUser.role] || currentUser.role;
+        }
+    }
+
+    function updateNavByRole() {
+        if (!currentUser) return;
+
+        const navItems = document.querySelectorAll('.nav-item[data-role]');
+        
+        navItems.forEach(item => {
+            const allowedRoles = item.dataset.role.split(',');
+            if (allowedRoles.includes(currentUser.role)) {
+                item.style.display = 'flex';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    }
+
+    function showAuthScreen() {
+        authScreen.style.display = 'flex';
+        appScreen.classList.remove('active');
+    }
+
+    function showAppScreen() {
+        authScreen.style.display = 'none';
+        appScreen.classList.add('active');
+    }
+
+    /* ========================================
+       AUTH EVENT HANDLERS
+       ======================================== */
+    // Tab switching
+    authTabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            authTabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+
+            const tabName = tab.dataset.tab;
+            document.querySelectorAll('.auth-form').forEach(form => {
+                form.classList.remove('active');
+            });
+            document.getElementById(tabName + 'Form').classList.add('active');
+
+            loginError.classList.remove('show');
+            registerError.classList.remove('show');
+        });
+    });
+
+    // Login form submit
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        const loginBtn = document.getElementById('loginBtn');
+
+        loginBtn.disabled = true;
+        loginBtn.innerHTML = '<div class="btn-spinner"></div><span>Вход...</span>';
+        loginError.classList.remove('show');
+
+        try {
+            if (!supabaseClient) {
+                throw new Error('Supabase не инициализирован.');
+            }
+
+            const { data, error } = await supabaseClient.auth.signInWithPassword({
+                email,
+                password
+            });
+
+            if (error) throw error;
+
+            await loadUserData(data.user.id);
+            showAppScreen();
+            showToast('Добро пожаловать в RIVA ERP!', 'success');
+
+        } catch (error) {
+            loginError.querySelector('span').textContent = error.message || 'Ошибка авторизации';
+            loginError.classList.add('show');
+        } finally {
+            loginBtn.disabled = false;
+            loginBtn.innerHTML = '<span>Войти в систему</span>';
+        }
+    });
+
+    // Register form submit
+    registerForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const fullName = document.getElementById('regName').value;
+        const email = document.getElementById('regEmail').value;
+        const password = document.getElementById('regPassword').value;
+        const role = document.getElementById('regRole').value;
+        const registerBtn = document.getElementById('registerBtn');
+
+        registerBtn.disabled = true;
+        registerBtn.innerHTML = '<div class="btn-spinner"></div><span>Регистрация...</span>';
+        registerError.classList.remove('show');
+
+        try {
+            if (!supabaseClient) {
+                throw new Error('Supabase не инициализирован.');
+            }
+
+            // Create auth user - триггер автоматически создаст запись в riva_users
+            const { data, error } = await supabaseClient.auth.signUp({
+                email,
+                password,
+                options: {
+                    data: {
+                        full_name: fullName,
+                        role: role
+                    }
+                }
+            });
+
+            if (error) throw error;
+
+            // Ждем немного, чтобы триггер успел отработать
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            await loadUserData(data.user.id);
+            showAppScreen();
+            showToast('Аккаунт успешно создан!', 'success');
+
+        } catch (error) {
+            registerError.querySelector('span').textContent = error.message || 'Ошибка регистрации';
+            registerError.classList.add('show');
+        } finally {
+            registerBtn.disabled = false;
+            registerBtn.innerHTML = '<span>Создать аккаунт</span>';
+        }
+    });
+
+    // Logout
+    logoutBtn.addEventListener('click', async () => {
+        if (supabaseClient) {
+            await supabaseClient.auth.signOut();
+        }
+        currentUser = null;
+        showAuthScreen();
+        showToast('Вы вышли из системы', 'success');
+    });
+
+    /* ========================================
+       SIDEBAR & NAVIGATION
+       ======================================== */
+    menuBtn.addEventListener('click', toggleSidebar);
+    sidebarOverlay.addEventListener('click', closeSidebar);
+
+    function toggleSidebar() {
+        sidebar.classList.toggle('open');
+        sidebarOverlay.classList.toggle('show');
+    }
+
+    function closeSidebar() {
+        sidebar.classList.remove('open');
+        sidebarOverlay.classList.remove('show');
+    }
+
+    // Navigation items click
+    document.querySelectorAll('.nav-item[data-page]').forEach(item => {
+        item.addEventListener('click', async () => {
+            const page = item.dataset.page;
+            
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            item.classList.add('active');
+
+            if (page === 'home') {
+                showWelcomeScreen();
+                pageTitle.textContent = 'Главная';
+            } else {
+                await loadPage(page);
+                const pageText = item.querySelector('span').textContent;
+                pageTitle.textContent = pageText;
+            }
+
+            if (window.innerWidth <= 768) {
                 closeSidebar();
             }
         });
+    });
 
-        /* ========================================
-           RESPONSIVE HANDLING
-           ======================================== */
-        let resizeTimeout;
-        window.addEventListener('resize', () => {
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(() => {
-                if (window.innerWidth > 768) {
-                    sidebarOverlay.classList.remove('show');
+    /* ========================================
+       PAGE LOADER
+       ======================================== */
+    async function loadPage(url) {
+        try {
+            pageContainer.innerHTML = `
+                <div class="welcome-screen" style="min-height: 300px;">
+                    <div class="loader"></div>
+                </div>
+            `;
+
+            const response = await fetch(url);
+            
+            if (!response.ok) {
+                throw new Error(`Ошибка загрузки: ${response.status}`);
+            }
+
+            const html = await response.text();
+            pageContainer.innerHTML = html;
+
+            // Execute scripts
+            const scripts = pageContainer.querySelectorAll('script');
+            for (const script of scripts) {
+                const newScript = document.createElement('script');
+                
+                if (script.src) {
+                    newScript.src = script.src;
+                } else {
+                    newScript.textContent = script.textContent;
                 }
-            }, 100);
-        });
-    </script>
+                
+                Array.from(script.attributes).forEach(attr => {
+                    if (attr.name !== 'src') {
+                        newScript.setAttribute(attr.name, attr.value);
+                    }
+                });
+                
+                script.parentNode.replaceChild(newScript, script);
+            }
+
+        } catch (error) {
+            console.error('Error loading page:', error);
+            pageContainer.innerHTML = `
+                <div class="welcome-screen">
+                    <div class="welcome-screen__icon" style="background: rgba(239, 68, 68, 0.1);">
+                        <svg viewBox="0 0 24 24" style="stroke: var(--danger);">
+                            <circle cx="12" cy="12" r="10"/>
+                            <line x1="12" y1="8" x2="12" y2="12"/>
+                            <line x1="12" y1="16" x2="12.01" y2="16"/>
+                        </svg>
+                    </div>
+                    <h2 class="welcome-screen__title">Ошибка загрузки</h2>
+                    <p class="welcome-screen__text">Не удалось загрузить страницу: ${error.message}</p>
+                    <button class="btn btn-secondary" onclick="showWelcomeScreen()">Вернуться на главную</button>
+                </div>
+            `;
+        }
+    }
+
+    function showWelcomeScreen() {
+        pageContainer.innerHTML = `
+            <div class="welcome-screen">
+                <div class="welcome-screen__icon">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                        <path d="M2 17l10 5 10-5"/>
+                        <path d="M2 12l10 5 10-5"/>
+                    </svg>
+                </div>
+                <h2 class="welcome-screen__title">Добро пожаловать в RIVA ERP</h2>
+                <p class="welcome-screen__text">Выберите раздел в боковом меню для начала работы с системой управления бизнес-процессами</p>
+                <button class="btn btn-secondary" onclick="document.getElementById('menuBtn').click()">
+                    Открыть меню
+                </button>
+            </div>
+        `;
+    }
+
+    /* ========================================
+       TOAST NOTIFICATIONS
+       ======================================== */
+    function showToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        
+        const iconPath = type === 'success' 
+            ? '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>'
+            : '<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>';
+        
+        toast.innerHTML = `
+            <svg class="toast__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                ${iconPath}
+            </svg>
+            <span class="toast__message">${message}</span>
+        `;
+        
+        toastContainer.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(100%)';
+            setTimeout(() => toast.remove(), 300);
+        }, 4000);
+    }
+
+    /* ========================================
+       UTILITY FUNCTIONS (GLOBAL)
+       ======================================== */
+    window.loadPage = loadPage;
+    window.showWelcomeScreen = showWelcomeScreen;
+    window.showToast = showToast;
+    window.getCurrentUser = () => currentUser;
+    window.getSupabase = () => supabaseClient;
+
+    /* ========================================
+       KEYBOARD SHORTCUTS
+       ======================================== */
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && sidebar.classList.contains('open')) {
+            closeSidebar();
+        }
+    });
+
+    /* ========================================
+       RESPONSIVE HANDLING
+       ======================================== */
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+            if (window.innerWidth > 768) {
+                sidebarOverlay.classList.remove('show');
+            }
+        }, 100);
+    });
+</script>
 </body>
 </html>
