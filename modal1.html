@@ -1,10 +1,9 @@
 <!-- =============================================
      RIVA ERP — Страница Продажи (modal1.html)
-     ИСПРАВЛЕНО: Ошибка PGRST201 (ambiguous relationship)
      ============================================= -->
 
 <style>
-        /* ========================================
+    /* ========================================
        ПРОДАЖИ — BRUTALIST TECH STYLE
        ======================================== */
     
@@ -23,27 +22,8 @@
     /* Toolbar */
     .toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
 
-    /* Brutalist Input System for Search/Filter */
-    .input-container { position: relative; width: 100%; margin-bottom: 0; }
-    .styled_input_bar {
-        width: 100%; padding: 12px 16px;
-        font-size: 14px; font-family: var(--font-ui);
-        border: 1px solid var(--border); border-radius: 8px;
-        background-color: transparent; color: var(--fg-primary);
-        outline: none; transition: all 0.2s ease; box-sizing: border-box;
-    }
-    .styled_input_bar:hover { border-color: #777; }
-    .styled_input_bar:focus { border-color: var(--fg-primary); }
-    .input-label {
-        position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
-        font-size: 12px; color: var(--fg-muted); pointer-events: none;
-        transition: all 0.2s ease; background-color: var(--bg-primary); padding: 0 6px;
-        text-transform: uppercase; letter-spacing: 0.05em;
-    }
-    .styled_input_bar:focus + .input-label { top: 0; color: var(--fg-primary); }
-    
     .search-box { flex: 1; min-width: 200px; max-width: 400px; position: relative; }
-    .search-box__input { /* Inherits from styled_input_bar */
+    .search-box__input {
         width: 100%; padding: 12px 16px 12px 44px;
         background: transparent; border: 1px solid var(--border);
         border-radius: var(--radius-md); color: var(--fg-primary);
@@ -75,7 +55,6 @@
         transition: all var(--transition-fast);
         cursor: pointer;
     }
-
     .deal-card:hover { border-color: var(--fg-primary); }
 
     .deal-card__header { padding: 20px; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
@@ -96,18 +75,8 @@
     .status-cancelled { border-color: var(--danger); color: var(--danger); background: transparent; }
 
     .deal-card__body { padding: 16px 20px; }
-
     .deal-card__client { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
-
-    .deal-card__avatar {
-        width: 36px; height: 36px;
-        border: 1px solid var(--border); border-radius: var(--radius-sm);
-        display: flex; align-items: center; justify-content: center;
-        color: var(--fg-primary);
-        font-weight: 700; font-size: 0.8rem;
-        flex-shrink: 0;
-    }
-
+    .deal-card__avatar { width: 36px; height: 36px; border: 1px solid var(--border); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; color: var(--fg-primary); font-weight: 700; font-size: 0.8rem; flex-shrink: 0; }
     .deal-card__client-info { min-width: 0; }
     .deal-card__client-name { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .deal-card__client-type { font-size: 0.75rem; color: var(--fg-muted); text-transform: uppercase; }
@@ -156,29 +125,17 @@
     .modal__close svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2; fill: none; }
 
     .modal__body { padding: 24px; overflow-y: auto; flex: 1; }
-
-    .modal__footer {
-        padding: 20px 24px; border-top: 1px solid var(--border);
-        display: flex; align-items: center; justify-content: flex-end;
-        gap: 12px; flex-shrink: 0;
-    }
+    .modal__footer { padding: 20px 24px; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: flex-end; gap: 12px; flex-shrink: 0; }
 
     /* Form Sections */
     .form-section { margin-bottom: 32px; }
-    .form-section__title {
-        font-weight: 700; font-size: 0.9rem; color: var(--fg-muted);
-        margin-bottom: 16px; padding-bottom: 8px;
-        border-bottom: 1px solid var(--border);
-        display: flex; align-items: center; gap: 8px;
-        text-transform: uppercase; letter-spacing: 0.1em;
-    }
+    .form-section__title { font-weight: 700; font-size: 0.9rem; color: var(--fg-muted); margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; text-transform: uppercase; letter-spacing: 0.1em; }
     .form-section__title svg { width: 16px; height: 16px; stroke: var(--fg-primary); stroke-width: 2; fill: none; }
 
     .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
     .form-group { margin-bottom: 0; position: relative; }
     .form-group_full { grid-column: 1 / -1; }
 
-    /* Override default input styles with brutalist ones */
     .form-input {
         width: 100%; padding: 12px 16px;
         background: transparent; border: 1px solid var(--border);
@@ -189,46 +146,22 @@
     .form-input::placeholder { color: var(--fg-muted); opacity: 0.5; }
     textarea.form-input { resize: vertical; min-height: 80px; }
 
-    /* Label for inputs inside form groups */
-    .form-label {
-        display: block; font-size: 0.7rem; font-weight: 600;
-        color: var(--fg-muted); margin-bottom: 8px;
-        text-transform: uppercase; letter-spacing: 0.1em;
-    }
+    .form-label { display: block; font-size: 0.7rem; font-weight: 600; color: var(--fg-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.1em; }
     .form-label_required::after { content: '*'; color: var(--danger); margin-left: 4px; }
 
     /* Checkbox Brutalist */
     .form-checkbox { display: flex; align-items: center; gap: 12px; cursor: pointer; user-select: none; }
     .form-checkbox input { display: none; }
-    .form-checkbox__box {
-        width: 24px; height: 24px;
-        border: 2px solid var(--border);
-        display: flex; align-items: center; justify-content: center;
-        transition: all var(--transition-fast); flex-shrink: 0;
-    }
+    .form-checkbox__box { width: 24px; height: 24px; border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; transition: all var(--transition-fast); flex-shrink: 0; }
     .form-checkbox input:checked + .form-checkbox__box { background: var(--fg-primary); border-color: var(--fg-primary); }
-    .form-checkbox__box svg {
-        width: 14px; height: 14px;
-        stroke: var(--bg-primary); stroke-width: 3; fill: none;
-        opacity: 0; transform: scale(0.5);
-        transition: all var(--transition-fast);
-    }
+    .form-checkbox__box svg { width: 14px; height: 14px; stroke: var(--bg-primary); stroke-width: 3; fill: none; opacity: 0; transform: scale(0.5); transition: all var(--transition-fast); }
     .form-checkbox input:checked + .form-checkbox__box svg { opacity: 1; transform: scale(1); }
     .form-checkbox__label { font-size: 0.9rem; }
 
     /* Items Table */
     .items-table-wrapper { overflow-x: auto; margin-top: 16px; border: 1px solid var(--border); border-radius: 8px; }
     .items-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-
-    .items-table th {
-        text-align: left; padding: 12px 16px;
-        background: rgba(255,255,255,0.02);
-        font-weight: 600; font-size: 0.7rem;
-        text-transform: uppercase; letter-spacing: 0.1em;
-        color: var(--fg-muted);
-        border-bottom: 1px solid var(--border);
-    }
-
+    .items-table th { text-align: left; padding: 12px 16px; background: rgba(255,255,255,0.02); font-weight: 600; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--fg-muted); border-bottom: 1px solid var(--border); }
     .items-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; }
     .items-table tbody tr:hover { background: rgba(255, 255, 255, 0.03); }
     .items-table tbody tr:last-child td { border-bottom: none; }
@@ -237,29 +170,15 @@
     .items-table__product-name { font-weight: 500; }
     .items-table__product-sku { font-size: 0.75rem; color: var(--fg-muted); font-family: monospace; }
 
-    .items-table__qty-input {
-        width: 80px; padding: 8px 12px;
-        background: transparent; border: 1px solid var(--border);
-        border-radius: 4px; color: var(--fg-primary); text-align: center;
-    }
+    .items-table__qty-input { width: 80px; padding: 8px 12px; background: transparent; border: 1px solid var(--border); border-radius: 4px; color: var(--fg-primary); text-align: center; }
     .items-table__qty-input:focus { outline: none; border-color: var(--fg-primary); }
 
-    .items-table__status {
-        display: inline-flex; align-items: center; gap: 6px;
-        padding: 4px 8px; border-radius: 4px;
-        font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
-        border: 1px solid;
-    }
+    .items-table__status { display: inline-flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; border: 1px solid; }
     .items-table__status--pending { border-color: var(--fg-muted); color: var(--fg-muted); background: transparent; }
     .items-table__status--in_progress { border-color: var(--warning); color: var(--warning); background: transparent; }
     .items-table__status--completed { border-color: var(--success); color: var(--success); background: transparent; }
 
-    .btn-remove-item {
-        width: 32px; height: 32px;
-        display: flex; align-items: center; justify-content: center;
-        background: transparent; border: 1px solid transparent;
-        cursor: pointer; transition: all var(--transition-fast);
-    }
+    .btn-remove-item { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: transparent; border: 1px solid transparent; cursor: pointer; transition: all var(--transition-fast); }
     .btn-remove-item:hover { border-color: var(--danger); }
     .btn-remove-item svg { width: 16px; height: 16px; stroke: var(--fg-muted); stroke-width: 2; fill: none; }
     .btn-remove-item:hover svg { stroke: var(--danger); }
@@ -276,34 +195,13 @@
     .empty-state__text { color: var(--fg-muted); margin-bottom: 24px; }
 
     /* Tabs */
-    .tabs {
-        display: flex; gap: 0;
-        background: transparent;
-        margin-bottom: 24px;
-        border-bottom: 1px solid var(--border);
-    }
-
-    .tabs__btn {
-        padding: 12px 20px;
-        background: transparent; border: none;
-        color: var(--fg-muted);
-        font-size: 0.8rem; font-weight: 600;
-        cursor: pointer;
-        transition: all var(--transition-fast);
-        font-family: var(--font-ui);
-        text-transform: uppercase; letter-spacing: 0.05em;
-        border-bottom: 2px solid transparent;
-        margin-bottom: -1px;
-    }
+    .tabs { display: flex; gap: 0; background: transparent; margin-bottom: 24px; border-bottom: 1px solid var(--border); }
+    .tabs__btn { padding: 12px 20px; background: transparent; border: none; color: var(--fg-muted); font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all var(--transition-fast); font-family: var(--font-ui); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 2px solid transparent; margin-bottom: -1px; }
     .tabs__btn:hover { color: var(--fg-primary); }
     .tabs__btn.active { color: var(--fg-primary); border-bottom-color: var(--fg-primary); }
 
     /* Commission */
-    .commission-block {
-        background: transparent;
-        border: 1px solid var(--border);
-        padding: 16px; margin-top: 16px;
-    }
+    .commission-block { background: transparent; border: 1px solid var(--border); padding: 16px; margin-top: 16px; }
     .commission-block__title { font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; font-size: 0.9rem; }
     .commission-block__title svg { width: 18px; height: 18px; stroke: var(--fg-primary); stroke-width: 2; fill: none; }
     .commission-block__note { font-size: 0.8rem; color: var(--fg-muted); margin-top: 8px; }
@@ -318,10 +216,7 @@
         .deals-grid { grid-template-columns: 1fr; }
         .modal { max-width: 100%; max-height: 100vh; border-radius: 0; }
         .form-row { grid-template-columns: 1fr; }
-        .items-table { font-size: 0.8rem; }
-        .items-table th, .items-table td { padding: 8px 10px; }
     }
-     
 </style>
 
 <div class="sales-page" id="salesPage">
@@ -330,49 +225,19 @@
         <div class="page-header__left">
             <h1 class="page-header__title">Продажи</h1>
             <div class="page-header__stats">
-                <div class="stat-item">
-                    <div class="stat-item__value" id="totalDeals">0</div>
-                    <div class="stat-item__label">Сделок</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-item__value" id="activeDeals">0</div>
-                    <div class="stat-item__label">В работе</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-item__value" id="totalAmount">0 ₽</div>
-                    <div class="stat-item__label">Общая сумма</div>
-                </div>
+                <div class="stat-item"><div class="stat-item__value" id="totalDeals">0</div><div class="stat-item__label">Сделок</div></div>
+                <div class="stat-item"><div class="stat-item__value" id="activeDeals">0</div><div class="stat-item__label">В работе</div></div>
+                <div class="stat-item"><div class="stat-item__value" id="totalAmount">0 ₽</div><div class="stat-item__label">Общая сумма</div></div>
             </div>
         </div>
-        <button class="btn btn-primary" id="btnNewDeal">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
-            <span>Новая сделка</span>
-        </button>
+        <button class="btn btn-primary" id="btnNewDeal"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg><span>Новая сделка</span></button>
     </div>
 
     <!-- Toolbar -->
     <div class="toolbar">
-        <div class="search-box">
-            <svg class="search-box__icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <input type="text" class="search-box__input" id="searchInput" placeholder="Поиск по сделкам...">
-        </div>
-        <select class="filter-select" id="statusFilter">
-            <option value="">Все статусы</option>
-            <option value="new">Новые</option>
-            <option value="in_progress">В работе</option>
-            <option value="production">На производстве</option>
-            <option value="ready">Готовы к отгрузке</option>
-            <option value="completed">Завершены</option>
-            <option value="cancelled">Отменены</option>
-        </select>
-        <select class="filter-select" id="dateFilter">
-            <option value="">За всё время</option>
-            <option value="today">Сегодня</option>
-            <option value="week">За неделю</option>
-            <option value="month">За месяц</option>
-        </select>
+        <div class="search-box"><svg class="search-box__icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" class="search-box__input" id="searchInput" placeholder="Поиск по сделкам..."></div>
+        <select class="filter-select" id="statusFilter"><option value="">Все статусы</option><option value="new">Новые</option><option value="in_progress">В работе</option><option value="production">На производстве</option><option value="ready">Готовы к отгрузке</option><option value="completed">Завершены</option><option value="cancelled">Отменены</option></select>
+        <select class="filter-select" id="dateFilter"><option value="">За всё время</option><option value="today">Сегодня</option><option value="week">За неделю</option><option value="month">За месяц</option></select>
     </div>
 
     <!-- Deals Grid -->
@@ -398,94 +263,38 @@
                 <div class="form-section">
                     <div class="form-section__title"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Информация о клиенте</div>
                     <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label form-label_required">Тип клиента</label>
-                            <select class="form-input" id="clientType">
-                                <option value="individual">Физическое лицо</option>
-                                <option value="company">Юридическое лицо</option>
-                            </select>
-                        </div>
-                        <div class="form-group" id="companyNameGroup" style="display: none;">
-                            <label class="form-label">Наименование организации</label>
-                            <input type="text" class="form-input" id="companyName" placeholder="ООО «Рога и копыта»">
-                        </div>
-                        <div class="form-group" id="companyInnGroup" style="display: none;">
-                            <label class="form-label">ИНН</label>
-                            <input type="text" class="form-input" id="companyInn" placeholder="1234567890" maxlength="12">
-                        </div>
+                        <div class="form-group"><label class="form-label form-label_required">Тип клиента</label><select class="form-input" id="clientType"><option value="individual">Физическое лицо</option><option value="company">Юридическое лицо</option></select></div>
+                        <div class="form-group" id="companyNameGroup" style="display: none;"><label class="form-label">Наименование организации</label><input type="text" class="form-input" id="companyName" placeholder="ООО «Рога и копыта»"></div>
+                        <div class="form-group" id="companyInnGroup" style="display: none;"><label class="form-label">ИНН</label><input type="text" class="form-input" id="companyInn" placeholder="1234567890" maxlength="12"></div>
                     </div>
                     <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label form-label_required">ФИО клиента</label>
-                            <input type="text" class="form-input" id="clientName" placeholder="Иванов Иван Иванович">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Телефон</label>
-                            <input type="tel" class="form-input" id="clientPhone" placeholder="+7 (999) 123-45-67">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Email</label>
-                            <input type="email" class="form-input" id="clientEmail" placeholder="client@example.com">
-                        </div>
+                        <div class="form-group"><label class="form-label form-label_required">ФИО клиента</label><input type="text" class="form-input" id="clientName" placeholder="Иванов Иван Иванович"></div>
+                        <div class="form-group"><label class="form-label">Телефон</label><input type="tel" class="form-input" id="clientPhone" placeholder="+7 (999) 123-45-67"></div>
+                        <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-input" id="clientEmail" placeholder="client@example.com"></div>
                     </div>
                 </div>
 
                 <div class="form-section">
                     <div class="form-section__title"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>Информация о сделке</div>
                     <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label form-label_required">Название сделки</label>
-                            <input type="text" class="form-input" id="dealTitle" placeholder="Поставка мебели для офиса">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Статус</label>
-                            <select class="form-input" id="dealStatus">
-                                <option value="new">Новая</option>
-                                <option value="in_progress">В работе</option>
-                                <option value="production">На производстве</option>
-                                <option value="ready">Готова к отгрузке</option>
-                                <option value="completed">Завершена</option>
-                                <option value="cancelled">Отменена</option>
-                            </select>
-                        </div>
+                        <div class="form-group"><label class="form-label form-label_required">Название сделки</label><input type="text" class="form-input" id="dealTitle" placeholder="Поставка мебели для офиса"></div>
+                        <div class="form-group"><label class="form-label">Статус</label><select class="form-input" id="dealStatus"><option value="new">Новая</option><option value="in_progress">В работе</option><option value="production">На производстве</option><option value="ready">Готова к отгрузке</option><option value="completed">Завершена</option><option value="cancelled">Отменена</option></select></div>
                     </div>
                     <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Приоритет</label>
-                            <select class="form-input" id="dealPriority">
-                                <option value="1">Низкий</option>
-                                <option value="2" selected>Средний</option>
-                                <option value="3">Высокий</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Срок выполнения</label>
-                            <input type="date" class="form-input" id="dealDeadline">
-                        </div>
+                        <div class="form-group"><label class="form-label">Приоритет</label><select class="form-input" id="dealPriority"><option value="1">Низкий</option><option value="2" selected>Средний</option><option value="3">Высокий</option></select></div>
+                        <div class="form-group"><label class="form-label">Срок выполнения</label><input type="date" class="form-input" id="dealDeadline"></div>
                     </div>
                     <div class="form-row">
-                        <div class="form-group form-group_full">
-                            <label class="form-label">Описание и комментарии</label>
-                            <textarea class="form-input" id="dealDescription" rows="3" placeholder="Дополнительная информация о заказе..."></textarea>
-                        </div>
+                        <div class="form-group form-group_full"><label class="form-label">Описание и комментарии</label><textarea class="form-input" id="dealDescription" rows="3" placeholder="Дополнительная информация о заказе..."></textarea></div>
                     </div>
                 </div>
 
                 <div class="form-section">
                     <div class="form-section__title"><svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Оригиналы документов</div>
-                    <label class="form-checkbox">
-                        <input type="checkbox" id="originalsReceived">
-                        <span class="form-checkbox__box"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>
-                        <span class="form-checkbox__label">Оригиналы документов получены от клиента</span>
-                    </label>
+                    <label class="form-checkbox"><input type="checkbox" id="originalsReceived"><span class="form-checkbox__box"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span><span class="form-checkbox__label">Оригиналы документов получены от клиента</span></label>
                     <div class="commission-block" id="commissionBlock" style="display: none;">
                         <div class="commission-block__title"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Начисление за сделку</div>
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label class="form-label">Сумма начисления (₽)</label>
-                                <input type="number" class="form-input" id="commissionAmount" placeholder="0">
-                            </div>
-                        </div>
+                        <div class="form-row"><div class="form-group"><label class="form-label">Сумма начисления (₽)</label><input type="number" class="form-input" id="commissionAmount" placeholder="0"></div></div>
                         <div class="commission-block__note">Начисление доступно только после получения оригиналов документов</div>
                     </div>
                 </div>
@@ -511,9 +320,7 @@
             </div>
 
             <!-- Tab: Docs -->
-            <div class="tab-content" id="tab-docs" style="display: none;">
-                <p style="color: var(--fg-muted); text-align: center; padding: 40px;">Функционал загрузки документов будет реализован в следующем этапе.</p>
-            </div>
+            <div class="tab-content" id="tab-docs" style="display: none;"><p style="color: var(--fg-muted); text-align: center; padding: 40px;">Функционал загрузки документов будет реализован в следующем этапе.</p></div>
         </div>
         <div class="modal__footer">
             <button class="btn btn-secondary" id="btnCancel">Отмена</button>
@@ -525,7 +332,6 @@
 <script>
 (function() {
     'use strict';
-
     const supabase = window.getSupabase ? window.getSupabase() : null;
     const currentUser = window.getCurrentUser ? window.getCurrentUser() : null;
     const showToast = window.showToast || console.log;
@@ -535,36 +341,21 @@
     let currentDealId = null;
     let dealItems = [];
 
-    const STATUS_LABELS = {
-        'new': 'Новая', 'in_progress': 'В работе', 'production': 'На производстве',
-        'ready': 'Готова', 'completed': 'Завершена', 'cancelled': 'Отменена'
-    };
-
+    const STATUS_LABELS = { 'new': 'Новая', 'in_progress': 'В работе', 'production': 'На производстве', 'ready': 'Готова', 'completed': 'Завершена', 'cancelled': 'Отменена' };
     const elements = {
-        dealsGrid: document.getElementById('dealsGrid'), searchInput: document.getElementById('searchInput'),
-        statusFilter: document.getElementById('statusFilter'), dateFilter: document.getElementById('dateFilter'),
-        btnNewDeal: document.getElementById('btnNewDeal'), dealModal: document.getElementById('dealModal'),
-        modalTitle: document.getElementById('modalTitle'), modalClose: document.getElementById('modalClose'),
-        btnCancel: document.getElementById('btnCancel'), btnSave: document.getElementById('btnSave'),
-        clientType: document.getElementById('clientType'), companyNameGroup: document.getElementById('companyNameGroup'),
-        companyInnGroup: document.getElementById('companyInnGroup'), companyName: document.getElementById('companyName'),
-        companyInn: document.getElementById('companyInn'), clientName: document.getElementById('clientName'),
-        clientPhone: document.getElementById('clientPhone'), clientEmail: document.getElementById('clientEmail'),
-        dealTitle: document.getElementById('dealTitle'), dealStatus: document.getElementById('dealStatus'),
-        dealPriority: document.getElementById('dealPriority'), dealDeadline: document.getElementById('dealDeadline'),
-        dealDescription: document.getElementById('dealDescription'), originalsReceived: document.getElementById('originalsReceived'),
-        commissionBlock: document.getElementById('commissionBlock'), commissionAmount: document.getElementById('commissionAmount'),
-        productSelect: document.getElementById('productSelect'), productQty: document.getElementById('productQty'),
-        btnAddProduct: document.getElementById('btnAddProduct'), itemsTableBody: document.getElementById('itemsTableBody'),
-        itemsTotal: document.getElementById('itemsTotal'), totalDeals: document.getElementById('totalDeals'),
+        dealsGrid: document.getElementById('dealsGrid'), searchInput: document.getElementById('searchInput'), statusFilter: document.getElementById('statusFilter'), dateFilter: document.getElementById('dateFilter'),
+        btnNewDeal: document.getElementById('btnNewDeal'), dealModal: document.getElementById('dealModal'), modalTitle: document.getElementById('modalTitle'), modalClose: document.getElementById('modalClose'),
+        btnCancel: document.getElementById('btnCancel'), btnSave: document.getElementById('btnSave'), clientType: document.getElementById('clientType'), companyNameGroup: document.getElementById('companyNameGroup'),
+        companyInnGroup: document.getElementById('companyInnGroup'), companyName: document.getElementById('companyName'), companyInn: document.getElementById('companyInn'), clientName: document.getElementById('clientName'),
+        clientPhone: document.getElementById('clientPhone'), clientEmail: document.getElementById('clientEmail'), dealTitle: document.getElementById('dealTitle'), dealStatus: document.getElementById('dealStatus'),
+        dealPriority: document.getElementById('dealPriority'), dealDeadline: document.getElementById('dealDeadline'), dealDescription: document.getElementById('dealDescription'), originalsReceived: document.getElementById('originalsReceived'),
+        commissionBlock: document.getElementById('commissionBlock'), commissionAmount: document.getElementById('commissionAmount'), productSelect: document.getElementById('productSelect'), productQty: document.getElementById('productQty'),
+        btnAddProduct: document.getElementById('btnAddProduct'), itemsTableBody: document.getElementById('itemsTableBody'), itemsTotal: document.getElementById('itemsTotal'), totalDeals: document.getElementById('totalDeals'),
         activeDeals: document.getElementById('activeDeals'), totalAmount: document.getElementById('totalAmount')
     };
 
     async function init() {
-        if (!supabase) {
-            elements.dealsGrid.innerHTML = renderError('Ошибка подключения к БД');
-            return;
-        }
+        if (!supabase) { elements.dealsGrid.innerHTML = '<div class="empty-state"><div class="empty-state__title">Ошибка подключения к БД</div></div>'; return; }
         await Promise.all([loadDeals(), loadProducts()]);
         setupEventListeners();
     }
@@ -572,78 +363,30 @@
     async function loadDeals() {
         try {
             elements.dealsGrid.innerHTML = '<div class="empty-state"><div class="loader"></div></div>';
-
-            const { data: dealsData, error: dealsError } = await supabase
-                .from('riva_deals')
-                .select(`*, client:riva_clients(*), manager:riva_users(*)`)
-                .order('created_at', { ascending: false });
+            const { data: dealsData, error: dealsError } = await supabase.from('riva_deals').select(`*, client:riva_clients(*), manager:riva_users(*)`).order('created_at', { ascending: false });
             if (dealsError) throw dealsError;
-
-            // ИСПРАВЛЕНИЕ: Явно указываем связь !assigned_to для устранения неоднозначности
-            const { data: itemsData, error: itemsError } = await supabase
-                .from('riva_deal_items')
-                .select(`
-                    *,
-                    product:riva_products(*),
-                    production_order:riva_production_orders(
-                        *,
-                        assigned_user:riva_users!assigned_to(*)
-                    )
-                `);
+            const { data: itemsData, error: itemsError } = await supabase.from('riva_deal_items').select(`*, product:riva_products(*), production_order:riva_production_orders(*, assigned_user:riva_users!assigned_to(*))`);
             if (itemsError) throw itemsError;
-
-            deals = (dealsData || []).map(deal => ({
-                ...deal,
-                items: (itemsData || []).filter(item => item.deal_id === deal.id)
-            }));
-
+            deals = (dealsData || []).map(deal => ({ ...deal, items: (itemsData || []).filter(item => item.deal_id === deal.id) }));
             renderDeals();
             updateStats();
-        } catch (error) {
-            console.error('Error loading deals:', error);
-            elements.dealsGrid.innerHTML = renderError(error.message);
-        }
+        } catch (error) { console.error('Error loading deals:', error); elements.dealsGrid.innerHTML = `<div class="empty-state"><div class="empty-state__title">Ошибка</div><p class="empty-state__text">${error.message}</p></div>`; }
     }
 
-    async function loadProducts() {
-        try {
-            const { data, error } = await supabase.from('riva_products').select('*').eq('is_active', true).order('name');
-            if (error) throw error;
-            products = data || [];
-            renderProductSelect();
-        } catch (error) {
-            console.error('Error loading products:', error);
-        }
-    }
-
-    function renderError(message) {
-        return `<div class="empty-state"><div class="empty-state__icon" style="background: rgba(239, 68, 68, 0.1);"><svg viewBox="0 0 24 24" style="stroke: var(--danger);"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><h3 class="empty-state__title">Ошибка загрузки</h3><p class="empty-state__text">${message}</p></div>`;
-    }
+    async function loadProducts() { try { const { data, error } = await supabase.from('riva_products').select('*').eq('is_active', true).order('name'); if (error) throw error; products = data || []; renderProductSelect(); } catch (error) { console.error('Error loading products:', error); } }
 
     function renderDeals() {
         const searchTerm = elements.searchInput.value.toLowerCase();
         const statusFilter = elements.statusFilter.value;
         const dateFilter = elements.dateFilter.value;
-
         let filteredDeals = deals.filter(deal => {
             const matchesSearch = !searchTerm || (deal.title || '').toLowerCase().includes(searchTerm) || (deal.client?.name || '').toLowerCase().includes(searchTerm);
             const matchesStatus = !statusFilter || deal.status === statusFilter;
             let matchesDate = true;
-            if (dateFilter) {
-                const dealDate = new Date(deal.created_at);
-                const now = new Date();
-                if (dateFilter === 'today') matchesDate = dealDate.toDateString() === now.toDateString();
-                else if (dateFilter === 'week') matchesDate = dealDate >= new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-                else if (dateFilter === 'month') matchesDate = dealDate >= new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-            }
+            if (dateFilter) { const dealDate = new Date(deal.created_at); const now = new Date(); if (dateFilter === 'today') matchesDate = dealDate.toDateString() === now.toDateString(); else if (dateFilter === 'week') matchesDate = dealDate >= new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000); else if (dateFilter === 'month') matchesDate = dealDate >= new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000); }
             return matchesSearch && matchesStatus && matchesDate;
         });
-
-        if (filteredDeals.length === 0) {
-            elements.dealsGrid.innerHTML = '<div class="empty-state" style="grid-column: 1 / -1;"><div class="empty-state__icon"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><h3 class="empty-state__title">Сделки не найдены</h3><p class="empty-state__text">Создайте первую сделку</p></div>';
-            return;
-        }
-
+        if (filteredDeals.length === 0) { elements.dealsGrid.innerHTML = '<div class="empty-state" style="grid-column: 1 / -1;"><div class="empty-state__icon"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><h3 class="empty-state__title">Сделки не найдены</h3><p class="empty-state__text">Создайте первую сделку</p></div>'; return; }
         elements.dealsGrid.innerHTML = filteredDeals.map(deal => {
             const clientName = deal.client?.name || 'Клиент не указан';
             const clientType = deal.client_type === 'company' ? 'Юр. лицо' : 'Физ. лицо';
@@ -652,151 +395,65 @@
             const createdTime = new Date(deal.created_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
             const managerName = deal.manager?.full_name || 'Не назначен';
             const amount = calculateDealTotal(deal);
-
-            return `
-                <div class="deal-card" onclick="window.openDeal('${deal.id}')">
-                    <div class="deal-card__header">
-                        <div><div class="deal-card__number">${deal.deal_number || 'Без номера'}</div><div class="deal-card__title">${deal.title || 'Без названия'}</div></div>
-                        <span class="deal-card__status status-${deal.status}">${STATUS_LABELS[deal.status] || deal.status}</span>
-                    </div>
-                    <div class="deal-card__body">
-                        <div class="deal-card__client"><div class="deal-card__avatar">${initials}</div><div class="deal-card__client-info"><div class="deal-card__client-name">${clientName}</div><div class="deal-card__client-type">${clientType}</div></div></div>
-                        <div class="deal-card__meta"><div class="deal-card__meta-item"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>${managerName}</span></div><div class="deal-card__meta-item"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>${createdDate}</span></div></div>
-                    </div>
-                    <div class="deal-card__footer"><div class="deal-card__amount">${formatCurrency(amount)}</div><div class="deal-card__date">${createdTime}</div></div>
-                </div>`;
+            return `<div class="deal-card" onclick="window.openDeal('${deal.id}')"><div class="deal-card__header"><div><div class="deal-card__number">${deal.deal_number || 'Без номера'}</div><div class="deal-card__title">${deal.title || 'Без названия'}</div></div><span class="deal-card__status status-${deal.status}">${STATUS_LABELS[deal.status] || deal.status}</span></div><div class="deal-card__body"><div class="deal-card__client"><div class="deal-card__avatar">${initials}</div><div class="deal-card__client-info"><div class="deal-card__client-name">${clientName}</div><div class="deal-card__client-type">${clientType}</div></div></div><div class="deal-card__meta"><div class="deal-card__meta-item"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>${managerName}</span></div><div class="deal-card__meta-item"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>${createdDate}</span></div></div></div><div class="deal-card__footer"><div class="deal-card__amount">${formatCurrency(amount)}</div><div class="deal-card__date">${createdTime}</div></div></div>`;
         }).join('');
     }
 
-    function renderProductSelect() {
-        elements.productSelect.innerHTML = '<option value="">Выберите товар из прайса...</option>' +
-            products.map(p => `<option value="${p.id}" data-price="${p.base_price}">${p.name} (${p.sku || 'без артикула'}) - ${formatCurrency(p.base_price)}</option>`).join('');
-    }
+    function renderProductSelect() { elements.productSelect.innerHTML = '<option value="">Выберите товар из прайса...</option>' + products.map(p => `<option value="${p.id}" data-price="${p.base_price}">${p.name} (${p.sku || 'без артикула'}) - ${formatCurrency(p.base_price)}</option>`).join(''); }
 
     function renderItems() {
-        if (dealItems.length === 0) {
-            elements.itemsTableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 24px; color: var(--fg-muted);">Добавьте товары</td></tr>';
-            elements.itemsTotal.textContent = '0 ₽'; return;
-        }
+        if (dealItems.length === 0) { elements.itemsTableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 24px; color: var(--fg-muted);">Добавьте товары</td></tr>'; elements.itemsTotal.textContent = '0 ₽'; return; }
         elements.itemsTableBody.innerHTML = dealItems.map((item, index) => {
             const product = products.find(p => p.id === item.product_id) || item.product || {};
             const total = (item.quantity || 0) * (item.unit_price || 0);
-            let prodStatus = '<span class="items-table__status items-table__status--pending">Ожидает</span>';
-            let prodWorker = '';
-            
-            if (item.production_order) {
-                const po = item.production_order;
-                if (po.status === 'completed') prodStatus = '<span class="items-table__status items-table__status--completed">Готово</span>';
-                else if (po.status === 'in_progress') {
-                    prodStatus = '<span class="items-table__status items-table__status--in_progress">В работе</span>';
-                    if (po.assigned_user) prodWorker = `<div class="production-info__worker"><div class="production-info__avatar">${getInitials(po.assigned_user.full_name)}</div><span>${po.assigned_user.full_name}</span></div>`;
-                }
-            }
-            return `<tr data-index="${index}">
-                <td><div class="items-table__product"><div><div class="items-table__product-name">${product.name || 'Товар'}</div><div class="items-table__product-sku">${product.sku || ''}</div></div></div></td>
-                <td><input type="number" class="items-table__qty-input" value="${item.quantity}" min="1" onchange="window.updateItemQty(${index}, this.value)"></td>
-                <td><input type="number" class="items-table__qty-input" value="${item.unit_price}" min="0" onchange="window.updateItemPrice(${index}, this.value)"></td>
-                <td><strong>${formatCurrency(total)}</strong></td>
-                <td>${prodStatus} ${prodWorker}</td>
-                <td><input type="date" class="items-table__qty-input" value="${item.ready_date || ''}" onchange="window.updateItemDate(${index}, this.value)" style="width: 120px;"></td>
-                <td><button class="btn-remove-item" onclick="window.removeItem(${index})"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></td>
-            </tr>`;
+            let prodStatus = '<span class="items-table__status items-table__status--pending">Ожидает</span>'; let prodWorker = '';
+            if (item.production_order) { const po = item.production_order; if (po.status === 'completed') prodStatus = '<span class="items-table__status items-table__status--completed">Готово</span>'; else if (po.status === 'in_progress') { prodStatus = '<span class="items-table__status items-table__status--in_progress">В работе</span>'; if (po.assigned_user) prodWorker = `<div class="production-info__worker"><div class="production-info__avatar">${getInitials(po.assigned_user.full_name)}</div><span>${po.assigned_user.full_name}</span></div>`; } }
+            return `<tr data-index="${index}"><td><div class="items-table__product"><div><div class="items-table__product-name">${product.name || 'Товар'}</div><div class="items-table__product-sku">${product.sku || ''}</div></div></div></td><td><input type="number" class="items-table__qty-input" value="${item.quantity}" min="1" onchange="window.updateItemQty(${index}, this.value)"></td><td><input type="number" class="items-table__qty-input" value="${item.unit_price}" min="0" onchange="window.updateItemPrice(${index}, this.value)"></td><td><strong>${formatCurrency(total)}</strong></td><td>${prodStatus} ${prodWorker}</td><td><input type="date" class="items-table__qty-input" value="${item.ready_date || ''}" onchange="window.updateItemDate(${index}, this.value)" style="width: 120px;"></td><td><button class="btn-remove-item" onclick="window.removeItem(${index})"><svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></td></tr>`;
         }).join('');
         updateItemsTotal();
     }
 
     function updateItemsTotal() { elements.itemsTotal.textContent = formatCurrency(dealItems.reduce((sum, item) => sum + (item.quantity || 0) * (item.unit_price || 0), 0)); }
-    function updateStats() {
-        elements.totalDeals.textContent = deals.length;
-        elements.activeDeals.textContent = deals.filter(d => ['new', 'in_progress', 'production'].includes(d.status)).length;
-        elements.totalAmount.textContent = formatCurrency(deals.reduce((sum, d) => sum + calculateDealTotal(d), 0));
-    }
+    function updateStats() { elements.totalDeals.textContent = deals.length; elements.activeDeals.textContent = deals.filter(d => ['new', 'in_progress', 'production'].includes(d.status)).length; elements.totalAmount.textContent = formatCurrency(deals.reduce((sum, d) => sum + calculateDealTotal(d), 0)); }
 
     function setupEventListeners() {
-        elements.searchInput.addEventListener('input', debounce(renderDeals, 300));
-        elements.statusFilter.addEventListener('change', renderDeals);
-        elements.dateFilter.addEventListener('change', renderDeals);
-        elements.btnNewDeal.addEventListener('click', () => openDealModal());
-        elements.modalClose.addEventListener('click', closeModal);
-        elements.btnCancel.addEventListener('click', closeModal);
-        elements.btnSave.addEventListener('click', saveDeal);
-        elements.clientType.addEventListener('change', function() {
-            const isCompany = this.value === 'company';
-            elements.companyNameGroup.style.display = isCompany ? 'block' : 'none';
-            elements.companyInnGroup.style.display = isCompany ? 'block' : 'none';
-        });
-        elements.originalsReceived.addEventListener('change', function() {
-            elements.commissionBlock.style.display = this.checked ? 'block' : 'none';
-            if (!this.checked) elements.commissionAmount.value = '';
-        });
-        document.querySelectorAll('.tabs__btn').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('.tabs__btn').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
-                document.getElementById('tab-' + this.dataset.tab).style.display = 'block';
-            });
-        });
-        elements.btnAddProduct.addEventListener('click', addProductToDeal);
-        elements.dealModal.addEventListener('click', function(e) { if (e.target === this) closeModal(); });
+        elements.searchInput.addEventListener('input', debounce(renderDeals, 300)); elements.statusFilter.addEventListener('change', renderDeals); elements.dateFilter.addEventListener('change', renderDeals);
+        elements.btnNewDeal.addEventListener('click', () => openDealModal()); elements.modalClose.addEventListener('click', closeModal); elements.btnCancel.addEventListener('click', closeModal); elements.btnSave.addEventListener('click', saveDeal);
+        elements.clientType.addEventListener('change', function() { const isCompany = this.value === 'company'; elements.companyNameGroup.style.display = isCompany ? 'block' : 'none'; elements.companyInnGroup.style.display = isCompany ? 'block' : 'none'; });
+        elements.originalsReceived.addEventListener('change', function() { elements.commissionBlock.style.display = this.checked ? 'block' : 'none'; if (!this.checked) elements.commissionAmount.value = ''; });
+        document.querySelectorAll('.tabs__btn').forEach(btn => { btn.addEventListener('click', function() { document.querySelectorAll('.tabs__btn').forEach(b => b.classList.remove('active')); this.classList.add('active'); document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none'); document.getElementById('tab-' + this.dataset.tab).style.display = 'block'; }); });
+        elements.btnAddProduct.addEventListener('click', addProductToDeal); elements.dealModal.addEventListener('click', function(e) { if (e.target === this) closeModal(); });
         document.addEventListener('keydown', function(e) { if (e.key === 'Escape' && elements.dealModal.classList.contains('show')) closeModal(); });
     }
 
-    function openDealModal(dealId = null) {
-        currentDealId = dealId; dealItems = [];
-        if (dealId) {
-            const deal = deals.find(d => d.id === dealId);
-            if (deal) { elements.modalTitle.textContent = 'Редактирование сделки'; fillDealForm(deal); }
-        } else { elements.modalTitle.textContent = 'Новая сделка'; resetDealForm(); }
-        elements.dealModal.classList.add('show'); document.body.style.overflow = 'hidden';
-    }
-
+    function openDealModal(dealId = null) { currentDealId = dealId; dealItems = []; if (dealId) { const deal = deals.find(d => d.id === dealId); if (deal) { elements.modalTitle.textContent = 'Редактирование сделки'; fillDealForm(deal); } } else { elements.modalTitle.textContent = 'Новая сделка'; resetDealForm(); } elements.dealModal.classList.add('show'); document.body.style.overflow = 'hidden'; }
     function closeModal() { elements.dealModal.classList.remove('show'); document.body.style.overflow = ''; currentDealId = null; dealItems = []; }
 
     function resetDealForm() {
-        elements.clientType.value = 'individual'; elements.companyNameGroup.style.display = 'none'; elements.companyInnGroup.style.display = 'none';
-        elements.companyName.value = ''; elements.companyInn.value = ''; elements.clientName.value = ''; elements.clientPhone.value = '';
-        elements.clientEmail.value = ''; elements.dealTitle.value = ''; elements.dealStatus.value = 'new'; elements.dealPriority.value = '2';
-        elements.dealDeadline.value = ''; elements.dealDescription.value = ''; elements.originalsReceived.checked = false;
-        elements.commissionBlock.style.display = 'none'; elements.commissionAmount.value = '';
-        dealItems = []; renderItems();
-        document.querySelectorAll('.tabs__btn').forEach(b => b.classList.remove('active'));
-        document.querySelector('.tabs__btn[data-tab="info"]').classList.add('active');
-        document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none'); document.getElementById('tab-info').style.display = 'block';
+        elements.clientType.value = 'individual'; elements.companyNameGroup.style.display = 'none'; elements.companyInnGroup.style.display = 'none'; elements.companyName.value = ''; elements.companyInn.value = ''; elements.clientName.value = ''; elements.clientPhone.value = ''; elements.clientEmail.value = ''; elements.dealTitle.value = ''; elements.dealStatus.value = 'new'; elements.dealPriority.value = '2'; elements.dealDeadline.value = ''; elements.dealDescription.value = ''; elements.originalsReceived.checked = false; elements.commissionBlock.style.display = 'none'; elements.commissionAmount.value = ''; dealItems = []; renderItems();
+        document.querySelectorAll('.tabs__btn').forEach(b => b.classList.remove('active')); document.querySelector('.tabs__btn[data-tab="info"]').classList.add('active'); document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none'); document.getElementById('tab-info').style.display = 'block';
     }
 
     async function fillDealForm(deal) {
-        elements.clientType.value = deal.client_type || 'individual';
-        const isCompany = deal.client_type === 'company';
-        elements.companyNameGroup.style.display = isCompany ? 'block' : 'none';
-        elements.companyInnGroup.style.display = isCompany ? 'block' : 'none';
+        elements.clientType.value = deal.client_type || 'individual'; const isCompany = deal.client_type === 'company'; elements.companyNameGroup.style.display = isCompany ? 'block' : 'none'; elements.companyInnGroup.style.display = isCompany ? 'block' : 'none';
         if (deal.client) { elements.clientName.value = deal.client.name || ''; elements.clientPhone.value = deal.client.phone || ''; elements.clientEmail.value = deal.client.email || ''; elements.companyName.value = deal.client.company_name || ''; elements.companyInn.value = deal.client.inn || ''; }
-        elements.dealTitle.value = deal.title || ''; elements.dealStatus.value = deal.status || 'new'; elements.dealPriority.value = deal.priority || '2';
-        elements.dealDeadline.value = deal.deadline || ''; elements.dealDescription.value = deal.description || '';
-        elements.originalsReceived.checked = deal.originals_received || false;
-        elements.commissionBlock.style.display = deal.originals_received ? 'block' : 'none';
-        elements.commissionAmount.value = deal.commission_amount || '';
-        if (deal.items && deal.items.length > 0) { dealItems = deal.items.map(item => ({ id: item.id, product_id: item.product_id, product: item.product, quantity: item.quantity, unit_price: item.unit_price, ready_date: item.ready_date, production_order: item.production_order, production_order_id: item.production_order_id })); } else { dealItems = []; }
-        renderItems();
+        elements.dealTitle.value = deal.title || ''; elements.dealStatus.value = deal.status || 'new'; elements.dealPriority.value = deal.priority || '2'; elements.dealDeadline.value = deal.deadline || ''; elements.dealDescription.value = deal.description || ''; elements.originalsReceived.checked = deal.originals_received || false; elements.commissionBlock.style.display = deal.originals_received ? 'block' : 'none'; elements.commissionAmount.value = deal.commission_amount || '';
+        if (deal.items && deal.items.length > 0) { dealItems = deal.items.map(item => ({ id: item.id, product_id: item.product_id, product: item.product, quantity: item.quantity, unit_price: item.unit_price, ready_date: item.ready_date, production_order: item.production_order, production_order_id: item.production_order_id })); } else { dealItems = []; } renderItems();
     }
 
     async function saveDeal() {
         const btn = elements.btnSave; btn.disabled = true; btn.innerHTML = '<div class="btn-spinner"></div><span>Сохранение...</span>';
         try {
-            if (!elements.clientName.value.trim()) { showToast('Укажите ФИО клиента', 'error'); return; }
-            if (!elements.dealTitle.value.trim()) { showToast('Укажите название сделки', 'error'); return; }
-            const isCompany = elements.clientType.value === 'company';
-            let clientId = null;
+            if (!elements.clientName.value.trim()) { showToast('Укажите ФИО клиента', 'error'); return; } if (!elements.dealTitle.value.trim()) { showToast('Укажите название сделки', 'error'); return; }
+            const isCompany = elements.clientType.value === 'company'; let clientId = null;
             const clientData = { name: elements.clientName.value.trim(), email: elements.clientEmail.value.trim() || null, phone: elements.clientPhone.value.trim() || null, company_name: isCompany ? elements.companyName.value.trim() : null, inn: isCompany ? elements.companyInn.value.trim() : null };
             if (currentDealId) { const existingDeal = deals.find(d => d.id === currentDealId); if (existingDeal?.client_id) { await supabase.from('riva_clients').update(clientData).eq('id', existingDeal.client_id); clientId = existingDeal.client_id; } }
             if (!clientId) { const { data: clientResult } = await supabase.from('riva_clients').insert(clientData).select('id').single(); clientId = clientResult?.id; }
             const dealData = { title: elements.dealTitle.value.trim(), description: elements.dealDescription.value.trim(), status: elements.dealStatus.value, priority: parseInt(elements.dealPriority.value), deadline: elements.dealDeadline.value || null, client_type: elements.clientType.value, originals_received: elements.originalsReceived.checked, commission_amount: elements.originalsReceived.checked ? parseFloat(elements.commissionAmount.value) || 0 : 0, manager_id: currentUser?.id, client_id: clientId };
-            if (currentDealId) { await supabase.from('riva_deals').update(dealData).eq('id', currentDealId); }
-            else { const dealNumber = await generateDealNumber(); const { data: dealResult } = await supabase.from('riva_deals').insert({ ...dealData, deal_number: dealNumber }).select('id').single(); currentDealId = dealResult?.id; }
+            if (currentDealId) { await supabase.from('riva_deals').update(dealData).eq('id', currentDealId); } else { const dealNumber = await generateDealNumber(); const { data: dealResult } = await supabase.from('riva_deals').insert({ ...dealData, deal_number: dealNumber }).select('id').single(); currentDealId = dealResult?.id; }
             if (currentDealId) { await saveDealItems(); }
             showToast('Сделка успешно сохранена', 'success'); closeModal(); await loadDeals();
-        } catch (error) { console.error('Error saving deal:', error); showToast('Ошибка сохранения: ' + error.message, 'error'); }
-        finally { btn.disabled = false; btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg><span>Сохранить</span>'; }
+        } catch (error) { console.error('Error saving deal:', error); showToast('Ошибка сохранения: ' + error.message, 'error'); } finally { btn.disabled = false; btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg><span>Сохранить</span>'; }
     }
 
     async function saveDealItems() {
@@ -814,15 +471,7 @@
     async function generateDealNumber() { const now = new Date(); const { count } = await supabase.from('riva_deals').select('*', { count: 'exact', head: true }); return `СД-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}-${String((count || 0) + 1).padStart(4, '0')}`; }
     async function generateProductionOrderNumber() { const now = new Date(); const { count } = await supabase.from('riva_production_orders').select('*', { count: 'exact', head: true }); return `ПР-${now.getFullYear()}-${String((count || 0) + 1).padStart(4, '0')}`; }
 
-    function addProductToDeal() {
-        const productId = parseInt(elements.productSelect.value); const qty = parseInt(elements.productQty.value) || 1;
-        if (!productId) { showToast('Выберите товар', 'error'); return; }
-        const product = products.find(p => p.id === productId); if (!product) return;
-        const existingIndex = dealItems.findIndex(i => i.product_id === productId);
-        if (existingIndex >= 0) dealItems[existingIndex].quantity += qty;
-        else dealItems.push({ product_id: productId, product: product, quantity: qty, unit_price: product.base_price || 0, ready_date: null });
-        renderItems(); elements.productSelect.value = ''; elements.productQty.value = '1';
-    }
+    function addProductToDeal() { const productId = parseInt(elements.productSelect.value); const qty = parseInt(elements.productQty.value) || 1; if (!productId) { showToast('Выберите товар', 'error'); return; } const product = products.find(p => p.id === productId); if (!product) return; const existingIndex = dealItems.findIndex(i => i.product_id === productId); if (existingIndex >= 0) dealItems[existingIndex].quantity += qty; else dealItems.push({ product_id: productId, product: product, quantity: qty, unit_price: product.base_price || 0, ready_date: null }); renderItems(); elements.productSelect.value = ''; elements.productQty.value = '1'; }
 
     function formatCurrency(amount) { return new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount || 0); }
     function getInitials(name) { if (!name) return '??'; return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase(); }
